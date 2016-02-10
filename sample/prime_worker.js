@@ -9,7 +9,7 @@ function PrimeWorker() {
     TransWorker.prototype.create.call(this, new Prime());
 }
 
-//This inherits the TrasnWorker
+//This inherits the TransWorker
 PrimeWorker.prototype = new TransWorker();
 
 new PrimeWorker(); //Create
