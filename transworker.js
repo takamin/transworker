@@ -95,6 +95,7 @@
             }(this));
 
             // Entry the handlers to receive notifies
+            notifyHandlers = notifyHandlers || {};
             Object.keys(notifyHandlers).forEach(function (key) {
                 this.onNotify[key] = function() {
                     notifyHandlers[key].apply(
