@@ -8,18 +8,24 @@ DESCRIPTION
 
 This TransWorker class provides the ability to call a method of a particular class object beyond the thread.
 
+![](image/readme_top.png "TransWorker")
+photo credit: <a href="http://www.flickr.com/photos/57763385@N03/16058283699">Pallet</a> via <a href="http://photopin.com">photopin</a> <a href="https://creativecommons.org/licenses/by-nc-nd/2.0/">(license)</a>
 
-使い方の説明
-------------
 
-ここでは、順番に素数を見つける単純なクラスを使用して、TransWorkerの使用方法を説明します。
+USAGE
+------
 
-### 1. クライアントクラスの実装
+ここでは、順番に素数を見つける簡単なクラスを使用して、TransWorkerの使用方法を説明します。
 
-実際にサブスレッドで動作させるクラスを作成します。
+Here is an explanation of TransWorker class using a simple class to find prime number.
+
+### 1. クライアントクラスの実装 Implement 'client-class'
+
+以下のような、実際にサブスレッドで動作させるクラスを作成します。
 このクラスを「クライアントクラス」と呼ぶことにします。
 
-以下の様なクラスです。
+Write a following class called 'client-class' that work in sub-thread.
+
 
 __prime.js__
 
@@ -52,10 +58,12 @@ Prime.prototype.getNextPrime = function() {
     return null;
 };
 ```
-### 2. Web Worker スクリプトを作成
+### 2. Web Worker スクリプトを作成 / Create Web Worker script
 
 Web Workerとして読み込まれるスクリプトを作成します。
 最低限、以下の実装になります。
+
+Create a script loaded as Web Worker. At least, it will be following codes.
 
 __prime_worker.js__
 
@@ -80,12 +88,17 @@ new PrimeWorker(); //Create
 ### 3. 動作させるためのコードを書きます。
 
 以下のHTMLファイルでは、Primeクラスを、メインスレッドとサブスレッド両方で動作させています。
+
 両者のコード上の違いは、見つかった素数の受け取り方です。
-オリジナルのシングルスレッドバージョンでは戻り値で受け取っていますが、
-サブスレッドバージョンでは、非同期のコールバックで取得しています。
+シングルスレッドバージョンの戻り値は、サブスレッドバージョンでは非同期のコールバックで返されます。
 
 ある素数よりも次に大きい素数を得るのは、そんなに重たい処理ではありませんし、
 このページには処理をブロックする要素もないため、両者の速度に違いはほとんどありません。
+
+
+One difference is that the returning value in single-thread-
+model is to be passed by async callback function specified
+when it called.
 
 __prime_worker.html__
 
