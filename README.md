@@ -19,12 +19,14 @@ USAGE
 
 Here is an explanation of TransWorker class using a simple class to find prime number.
 
-### 1. クライアントクラスの実装 Implement 'client-class'
+### 1. クライアントクラスの実装 / Implement a 'client-class'
 
 以下のような、実際にサブスレッドで動作させるクラスを作成します。
 このクラスを「クライアントクラス」と呼ぶことにします。
 
-Write a following class called 'client-class' that work in sub-thread.
+Write a class called 'client-class' that works in sub-thread.
+
+Like followings:
 
 
 __prime.js__
@@ -58,6 +60,7 @@ Prime.prototype.getNextPrime = function() {
     return null;
 };
 ```
+
 ### 2. Web Worker スクリプトを作成 / Create Web Worker script
 
 Web Workerとして読み込まれるスクリプトを作成します。
@@ -65,7 +68,7 @@ Web Workerとして読み込まれるスクリプトを作成します。
 
 Create a script loaded as Web Worker. At least, it will be following codes.
 
-__prime_worker.js__
+__prime\_worker.js__
 
 ```
 importScripts('../transworker.js', 'prime.js');
@@ -85,7 +88,7 @@ PrimeWorker.prototype = new TransWorker();
 new PrimeWorker(); //Create
 ```
 
-### 3. 動作させるためのコードを書きます。
+### 3. 動作させるためのコードを書く / Write caller codes
 
 以下のHTMLファイルでは、Primeクラスを、メインスレッドとサブスレッド両方で動作させています。
 
@@ -95,12 +98,14 @@ new PrimeWorker(); //Create
 ある素数よりも次に大きい素数を得るのは、そんなに重たい処理ではありませんし、
 このページには処理をブロックする要素もないため、両者の速度に違いはほとんどありません。
 
+Following HTML, It runs the Prime class in both main-thread
+and sub-thread.
 
 One difference is that the returning value in single-thread-
 model is to be passed by async callback function specified
 when it called.
 
-__prime_worker.html__
+__prime.html__
 
 ```
 <!doctype HTML>
