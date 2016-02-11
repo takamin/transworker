@@ -71,21 +71,8 @@ Create a script loaded as Web Worker. At least, it will be following codes.
 __prime\_worker.js__
 
 ```
-importScripts('../transworker.js', 'prime.js');
-
-//Constructor
-function PrimeWorker() {
-    //Set constructor
-    this.constructor = PrimeWorker;
-
-    // Craete client class object and TransWorker
-    TransWorker.prototype.create.call(this, new Prime());
-}
-
-//This inherits the TransWorker
-PrimeWorker.prototype = new TransWorker();
-
-new PrimeWorker(); //Create
+importScripts('path/to/the/transworker.js', 'prime.js');
+TransWorker.runClient(Prime);
 ```
 
 ### 3. 動作させるためのコードを書く / Write caller codes
@@ -130,7 +117,7 @@ span { display:inline-block; padding:10px; margin:2px; }
     <span id="lastResultMt" class="lastResult"></span>
 </div>
 <script src="prime.js"></script>
-<script src="../transworker.js"></script>
+<script src="path/to/the/transworker.js"></script>
 <script type="text/javascript">
 (function() {
     var lastResultSt = document.getElementById('lastResultSt');
@@ -142,8 +129,7 @@ span { display:inline-block; padding:10px; margin:2px; }
     }, 1);
 
     var lastResultMt = document.getElementById('lastResultMt');
-    var prime_worker = new TransWorker();
-    prime_worker.create("./prime_worker.js", Prime, this);
+    var prime_worker = TransWorker.create("./prime_worker.js", Prime, this);
     window.setInterval(function() {
         prime_worker.getNextPrime(function(num) {
             lastResultMt.innerHTML = JSON.stringify(num);

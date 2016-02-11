@@ -59,6 +59,16 @@
         //              key: name of notify,
         //              value: function object
         //
+        TransWorker.create = function(
+                urlDerivedWorker, clientCtor,
+                thisObject, notifyHandlers)
+        {
+            var transworker = new TransWorker();
+            transworker.create(
+                urlDerivedWorker, clientCtor,
+                thisObject, notifyHandlers);
+            return transworker;
+        }
         TransWorker.prototype.create = function(
                 urlDerivedWorker, clientCtor,
                 thisObject, notifyHandlers)
@@ -135,6 +145,13 @@
             };
         }
     } else if(TransWorker.context == 'DedicatedWorkerGlobalScope') {
+        TransWorker.runClient = function(client) {
+            var transworker = new TransWorker();
+            if(typeof(client) == 'function') {
+                client = new client();
+            }
+            transworker.create(client);
+        }
         //
         // Create Worker side TransWorker instance.
         // (designed to be invoked from sub-class constructor)
