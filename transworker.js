@@ -67,7 +67,6 @@
             this.worker = new Worker(urlDerivedWorker);
 
             // Create prototype entries same to the client
-            this.createWrappers(["start", "stop"] );
             this.createWrappers(Object.keys(clientCtor.prototype));
 
             // Receive message from worker thread
