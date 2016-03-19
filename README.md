@@ -1,32 +1,55 @@
-transworker
-===========
+transworker - JavaScriptマルチスレッド化ヘルパークラス
+================================================
 
-DESCRIPTION
------------
-
-このTransWorkerクラスは、スレッドを超えて、特定のクラスオブジェクトのメソッドを呼び出す機能を提供します。
-
-This TransWorker class provides the ability to call a method of a particular class object beyond the thread.
-
-![](image/readme_top.png "TransWorker")
+![](image/readme_top.png "TransWorker")  
 photo credit: <a href="http://www.flickr.com/photos/57763385@N03/16058283699">Pallet</a> via <a href="http://photopin.com">photopin</a> <a href="https://creativecommons.org/licenses/by-nc-nd/2.0/">(license)</a>
 
+概要
+----
 
-USAGE
-------
+TransWorkerは、JavaScriptのクラスのオブジェクトをサブスレッドで動作させるためのヘルパークラスです。
+
+機能
+----
+
+### スレッド間でのメソッド呼び出し
+
+TransWorkerを使えば、通常の ― シングルスレッドで動作するように作成された ― クラス（以降「クライアントクラス」と記述します）のオブジェクトをサブスレッド側で生成し、そのメソッドをメインスレッド側から呼び出せます。
+
+### 戻り値はコールバックで受け取れる
+
+サブスレッド側で呼び出されたメソッドの戻り値は、メインスレッド側では、コールバック関数で受け取れます。
+コールバック関数は、クライアントクラスの各メソッドの引数リストの最後に追加されます。
+
+### サブスレッドからのイベント通知
+
+サブスレッド側からメインスレッドへ、能動的にイベントを送信できます。
+
+詳細
+----
+
+### メソッド呼び出しと、その戻り値を、スレッド間メッセージに変換
+
+TransWorkerは、メインスレッドからのメソッド呼び出しを、スレッド間メッセージの送信(postMessage)に変換し、サブスレッド側の受信処理(onMessage)から、クライアントクラスオブジェクトのメソッドを呼び出します。
+
+また、メソッドの戻り値は、逆方向のメッセージに変換され、メインコンテキストがわで、呼び出し時に登録されたコールバック関数を使って、呼び出し元へ返されます。
+
+メインスレッド側では、TransWorkerは対象クラスのプロトタイプを読み取り、クライアントクラスオブジェクトに成りすましています。
+このため、あたかも、オブジェクトがメインコンテキスト内にあるかのように扱えるのです。
+実際のクライアントクラスオブジェクトは、WebWorker側のコンテキストで生成されます。
+
+使用例 / EXAMPLE
+--------------
 
 ここでは、順番に素数を見つける簡単なクラスを使用して、TransWorkerの使用方法を説明します。
 
 Here is an explanation of TransWorker class using a simple class to find prime number.
 
-### 1. クライアントクラスの実装 / Implement a 'client-class'
+### 1. クライアントクラスの用意 / Prepare a 'client-class'
 
-以下のような、実際にサブスレッドで動作させるクラスを作成します。
-このクラスを「クライアントクラス」と呼ぶことにします。
+ここでは以下のような、クライアントクラスを準備します。
 
-Write a class called 'client-class' that works in sub-thread.
-
-Like followings:
+Here is a 'client-class' that will work in sub-thread:
 
 
 __prime.js__
