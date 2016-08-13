@@ -5,14 +5,9 @@ function Prime() {
 Prime.prototype.isPrime = function(n) {
     for(var i = 0; i < this.primes.length; i++) {
         if((n % this.primes[i]) == 0) {
-            console.log("A", n,
-                    "is not a prime",
-                    "cause it was divided by a prime",
-                    this.primes[i]);
             return false;
         }
     }
-    console.log("Found a ", this.num, "as prime.");
     return true;
 }
 Prime.prototype.getNextPrime = function() {
@@ -24,4 +19,22 @@ Prime.prototype.getNextPrime = function() {
         }
     }
     return null;
+};
+Prime.prototype.getLastPrime = function() {
+    if(this.primes.length <= 0) {
+        return null;
+    }
+    return this.primes[this.primes.length - 1];
+};
+Prime.prototype.getPrimes = function() {
+    return this.primes;
+};
+Prime.prototype.findPrimes = function(count) {
+    var i = 0;
+    while(i < count) {
+        if(this.getNextPrime() != null) {
+            i++;
+        }
+    }
+    return this.getLastPrime();
 };
