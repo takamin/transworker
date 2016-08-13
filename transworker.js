@@ -85,20 +85,28 @@
             this.onNotify = {};
             this.worker.onmessage = (function(wkr) {
                 return function(e) {
-                    try {
-                        switch(e.data.type) {
-                        case 'response':
+                    switch(e.data.type) {
+                    case 'response':
+                        try {
                             wkr.callbacks[e.data.queryId].apply(
                                     thisObject, e.data.param);
-                            delete wkr.callbacks[e.data.queryId];
-                            break;
-                        case 'notify':
+                        } catch(ex) {
+                            console.warn("*** exception: ", ex,
+                                "in method", e.data.method, "params:",
+                                JSON.stringify(e.data.param));
+                        }
+                        delete wkr.callbacks[e.data.queryId];
+                        break;
+                    case 'notify':
+                        try {
                             wkr.onNotify[e.data.name](
                                     e.data.param);
-                            break;
+                        } catch(ex) {
+                            console.warn("*** exception: ", ex,
+                                "in notify", e.data.name, "params:",
+                                JSON.stringify(e.data.param));
                         }
-                    } catch(ex) {
-                        console.warn("*** exception: ", ex);
+                        break;
                     }
                 };
             }(this));
@@ -144,7 +152,9 @@
                     queryId: queryId });
             };
         }
-    } else if(TransWorker.context == 'DedicatedWorkerGlobalScope') {
+    } else if( TransWorker.context == 'DedicatedWorkerGlobalScope'
+            || TransWorker.context == 'WorkerGlobalScope')
+    {
         TransWorker.runClient = function(client) {
             var transworker = new TransWorker();
             if(typeof(client) == 'function') {
@@ -190,7 +200,9 @@
                             ]
                         });
                     } catch(ex) {
-                        console.warn("*** exception: ", ex);
+                        console.warn("*** exception: ", ex,
+                            "in method", e.data.method, "params:",
+                            JSON.stringify(e.data.param));
                     }
                 };
             }(this));
