@@ -39,8 +39,17 @@
 // is included in parameter of wrapper invocation.
 //
 (function(globalContext) {
+    var globalContextName = globalContext.constructor.name;
+    if(!globalContextName) {
+        // Browser is NOT webkit, perhaps IE11
+        if(globalContext == "[object Window]") {
+            globalContextName = "Window";
+        } else if(globalContext == "[object WorkerGlobalScope]") {
+            globalContextName = "DedicatedWorkerGlobalScope";
+        }
+    }
     TransWorker = function(){}
-    TransWorker.context = globalContext.constructor.name;
+    TransWorker.context = globalContextName;
     if(TransWorker.context == 'Window') {
         //
         // Create for UI-thread
@@ -68,7 +77,7 @@
                 urlDerivedWorker, clientCtor,
                 thisObject, notifyHandlers);
             return transworker;
-        }
+        };
         TransWorker.prototype.create = function(
                 urlDerivedWorker, clientCtor,
                 thisObject, notifyHandlers)
