@@ -1,0 +1,28 @@
+{
+  "name": "transworker",
+  "version": "1.0.0",
+  "description": "An inter thread method invoker. This module yields the interfaces for the main thread to invoke the instance methods of the class by peeping that prototype.",
+  "main": "transworker.js",
+  "scripts": {
+    "test": "node sample/webserver.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/takamin/transworker.git"
+  },
+  "keywords": [
+    "WebWorker",
+    "Multi-Thread"
+  ],
+  "author": "Koji Takami",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/takamin/transworker/issues"
+  },
+  "homepage": "http://takamints.hatenablog.jp/entry/2016/01/31/mutithreading-javascript-on-a-browser-using-a-web-workers-api",
+  "devDependencies": {
+    "connect": "^3.6.0",
+    "opn": "^4.0.2",
+    "serve-static": "^1.12.1"
+  }
+}

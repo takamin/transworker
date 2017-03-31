@@ -1,7 +1,10 @@
 //
-// TransWorker - Worker transporter
+// TransWorker - Yields the interfaces for the main thread to
+// communicate with a class instance running in WebWorker by
+// peeping the prototypes.
+// 
 //
-// Copyright (c) 2016 Koji Takami(vzg03566@gmail.com)
+// Copyright (c) 2017 Koji Takami(vzg03566@gmail.com)
 // Released under the MIT license
 // http://opensource.org/licenses/mit-license.php
 //
@@ -48,7 +51,7 @@
             globalContextName = "DedicatedWorkerGlobalScope";
         }
     }
-    TransWorker = function(){}
+    TransWorker = function(){};
     TransWorker.context = globalContextName;
     if(TransWorker.context == 'Window') {
         //
@@ -138,7 +141,7 @@
             method_names.forEach(function(m) {
                 TransWorker.prototype[m] = this.wrapper(m);
             }, this);
-        }
+        };
 
         // Create client method wrapper
         TransWorker.prototype.wrapper = function(
@@ -160,17 +163,18 @@
                     param: param,
                     queryId: queryId });
             };
-        }
+        };
     } else if( TransWorker.context == 'DedicatedWorkerGlobalScope'
             || TransWorker.context == 'WorkerGlobalScope')
     {
-        TransWorker.runClient = function(client) {
+        TransWorker.create = function(client) {
             var transworker = new TransWorker();
             if(typeof(client) == 'function') {
                 client = new client();
             }
             transworker.create(client);
-        }
+            return transworker;
+        };
         //
         // Create Worker side TransWorker instance.
         // (designed to be invoked from sub-class constructor)
@@ -181,6 +185,10 @@
         TransWorker.prototype.create = function(client) {
             this.worker = globalContext;
             this.client = client;
+
+            // Make the client to be able to use this module
+            this.client._transworker = this;
+
             (function(wkr) {
 
                 // Override subclas methods by this context
@@ -229,4 +237,9 @@
             });
         };
     }
-}(this));
+    try {
+        module.exports = TransWorker;
+    } catch(err) {
+        globalContext.TransWorker = TransWorker;
+    }
+}(Function("return this;")()));

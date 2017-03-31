@@ -7,39 +7,103 @@ photo credit: <a href="http://www.flickr.com/photos/57763385@N03/16058283699">Pa
 概要
 ----
 
-TransWorkerは、JavaScriptのクラスのオブジェクトをサブスレッドで動作させるためのヘルパークラスです。
+TransWorkerは、
+JavaScriptの任意のクラスのインスタンスをWebWorkerのワーカースレッド側に生成して、
+そのインスタンスメソッドを、メインスレッド側から呼び出せるようにするモジュールです。
 
-機能
-----
+この任意のクラスのことを、当ドキュメントではクライアントクラスと呼ぶことにします。
 
-### スレッド間でのメソッド呼び出し
+TransWorkerのインスタンスは、ひとつのクライアントクラスに対して、
+メインスレッドとワーカースレッドで生成され互いに通信を行います。
 
-TransWorkerを使えば、通常の ― シングルスレッドで動作するように作成された ― クラス（以降「クライアントクラス」と記述します）のオブジェクトをサブスレッド側で生成し、そのメソッドをメインスレッド側から呼び出せます。
+メインスレッド側のインスタンスは、クライアントクラスのプロトタイプを読み取って、
+TransWorkerオブジェクト内に、同名のメソッドを生成します。
+このメソッドでは、WebWorkerのメッセージ機能を利用して、
+ワーカースレッド側のTransWorkerオブジェクトに対して、
+メソッド呼び出しの要求を行います。
 
-### 戻り値はコールバックで受け取れる
+ワーカースレッド側では、メインスレッドから受けとったメソッドを呼び出して、
+その戻り値をメインスレッドへ返します。
 
-サブスレッド側で呼び出されたメソッドの戻り値は、メインスレッド側では、コールバック関数で受け取れます。
-コールバック関数は、クライアントクラスの各メソッドの引数リストの最後に追加されます。
 
-### サブスレッドからのイベント通知
+メインスレッド向けAPI
+---------------------
 
-サブスレッド側からメインスレッドへ、能動的にイベントを送信できます。
+### TransWorker.create
 
-詳細
-----
+__TransWorker.create(urlDerivedWorker, clientCtor, thisObject, notifyHandlers)__
 
-### メソッド呼び出しと、その戻り値を、スレッド間メッセージに変換
+__DESCRIPTION__
 
-TransWorkerは、メインスレッドからのメソッド呼び出しを、スレッド間メッセージの送信(postMessage)に変換し、サブスレッド側の受信処理(onMessage)から、クライアントクラスオブジェクトのメソッドを呼び出します。
+メインスレッド側で利用できるTransWorkerオブジェクトを生成します。
 
-また、メソッドの戻り値は、逆方向のメッセージに変換され、メインコンテキストがわで、呼び出し時に登録されたコールバック関数を使って、呼び出し元へ返されます。
+__PARAMETERS__
 
-メインスレッド側では、TransWorkerは対象クラスのプロトタイプを読み取り、クライアントクラスオブジェクトに成りすましています。
-このため、あたかも、オブジェクトがメインコンテキスト内にあるかのように扱えるのです。
-実際のクライアントクラスオブジェクトは、WebWorker側のコンテキストで生成されます。
+1. urlDerivedWorker - WebWorkerプロセスのURL。
+2. clientCtor - クライアントクラスのコンストラクタ。
+3. thisObject - 通知を呼び出す場合のthisを指定する。
+4. notifyHandlers - WebWorker側からの通知を受け取るハンドラーのリスト。
+
+__DETAILS__
+
+返されるオブジェクトには、
+第二引数で渡されたクラスのすべてのメソッドと同名のメソッドが実装されています。
+
+これらのメソッド呼び出しは、第一引数で示されたWebWorker内で動作している、
+クライアントクラスのインスタンスメソッド呼び出しに変換されます。
+
+この呼び出しは非同期呼び出しです。
+
+メソッドの戻り値は、本来の引数リストの後に指定するコールバック関数で受け取ります。
+
+__RETURNS__
+
+第二引数に指定されたクラスのメソッドをすべて持った、
+TransWorkerインスタンスを返します。
+
+### TransWorker.create
+
+__TransWorker.create(client)__
+
+__DESCRIPTION__
+
+ワーカースレッドで動作するTransWorkerオブジェクトを生成します。
+このオブジェクトがメインスレッドからの通知により第一引数で指定される
+インスタンスのメソッドを呼び出します。
+
+__PARAMETERS__
+
+* client - ワーカースレッドで動作するクラスの、
+インスタンスかデフォルトコンストラクタを指定します。
+
+__DETAILS__
+
+第一引数の対象となるインスタンスに、TransWorkerのインスタンスを保持させる
+`_transworker`というフィールドを追加します。
+これにより、postNotifyメソッドを呼び出せます。
+
+
+__RETURNS__
+
+ワーカースレッド側のTransWorkerインスタンスを返します。
+
+### transworker.postNotify
+
+__transworker.postNotify(name, parameter)__
+
+__DESCRIPTION__
+
+メインスレッド側のTransWorkerオブジェクトへ通知を送信します。
+
+__PARAMETERS__
+
+* name - 通知の名称。
+* parameter - 通知に関連するパラメータ。
+
+それぞれの内容は対象のクラスで独自に定義します。
 
 使用例 / EXAMPLE
---------------
+----------------
 
 ここでは、順番に素数を見つける簡単なクラスを使用して、TransWorkerの使用方法を説明します。
 
@@ -54,7 +118,7 @@ Here is a 'client-class' that will work in sub-thread:
 
 __prime.js__
 
-```
+```javascript
 function Prime() {
     this.primes = [];
     this.num = 1;
@@ -84,7 +148,7 @@ Prime.prototype.getNextPrime = function() {
 };
 ```
 
-### 2. Web Worker スクリプトを作成 / Create Web Worker script
+### 2. Web Worker スクリプト / Create Web Worker script
 
 Web Workerとして読み込まれるスクリプトを作成します。
 最低限、以下の実装になります。
@@ -93,12 +157,13 @@ Create a script loaded as Web Worker. At least, it will be following codes.
 
 __prime\_worker.js__
 
-```
-importScripts('path/to/the/transworker.js', 'prime.js');
-TransWorker.runClient(Prime);
+```javascript
+importScripts('path/to/the/transworker.js');
+importScripts('prime.js');
+TransWorker.create(Prime);
 ```
 
-### 3. 動作させるためのコードを書く / Write caller codes
+### 3. メインスレッド側のコード / Main thread codes
 
 以下のHTMLファイルでは、Primeクラスを、メインスレッドとサブスレッド両方で動作させています。
 
@@ -117,7 +182,7 @@ when it called.
 
 __prime.html__
 
-```
+```html
 <!doctype HTML>
 <html>
 <head>
