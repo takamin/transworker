@@ -42,6 +42,7 @@
 // is included in parameter of wrapper invocation.
 //
 (function(globalContext) {
+    "use strict";
     var globalContextName = globalContext.constructor.name;
     if(!globalContextName) {
         // Browser is NOT webkit, perhaps IE11
@@ -51,7 +52,7 @@
             globalContextName = "DedicatedWorkerGlobalScope";
         }
     }
-    TransWorker = function(){};
+    function TransWorker(){};
     TransWorker.context = globalContextName;
     if(TransWorker.context == 'Window') {
         //
