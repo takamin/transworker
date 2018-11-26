@@ -1,48 +1,30 @@
-//
-// TransWorker - Yields the interfaces for the main thread to
-// communicate with a class instance running in WebWorker by
-// peeping the prototypes.
-// 
-//
-// Copyright (c) 2017 Koji Takami(vzg03566@gmail.com)
-// Released under the MIT license
-// http://opensource.org/licenses/mit-license.php
-//
-
-//
-// DESCRIPTION
-//
-// This class implementation is different for either main
-// or sub thread.
-//
-// The main thread version of this class is loaded from
-// html script tag, and it performs as a wrapper for the
-// client-class object running in sub thread.
-//
-// To instantiate in the main thread, this class can be
-// used directly.
-//
-// The constructor receives an url for a Web Worker script
-// and a client-class constructor.
-//
-// In the script, a class derived from this class of a
-// sub-thread version must be declared.
-//
-// It creates the Web Worker object and declare wrapper
-// functions dynamically by reading the client-class
-// declarations.
-//
-// The wrapper function translates the method invocation
-// with all its parameters to a JSON object, and posts
-// to the Web Worker instance created by this class
-// instance of sub-thread version.
-//
-// The return value of the client-class method will be
-// returned as a parameter of the callback function that
-// is included in parameter of wrapper invocation.
-//
+/**
+ * TransWorker - Yields the interfaces for the main thread to
+ * communicate with a class instance running in WebWorker by
+ * peeping the prototypes.
+ *
+ * DESCRIPTION
+ *
+ * The implementation of this class is different between
+ * main and sub thread.
+ *
+ * The instance created in the main thread is the interface to
+ * invoke methods of the instance running in the sub thread.
+ *
+ * The return value of the remote method will be
+ * notified to the callback function as parameter
+ *
+ * LICENSE
+ *
+ * Released under the MIT license
+ * http://opensource.org/licenses/mit-license.php
+ *
+ * Copyright (c) 2017 Koji Takami(vzg03566@gmail.com)
+ *
+ */
 (function(globalContext) {
     "use strict";
+
     var globalContextName = globalContext.constructor.name;
     if(!globalContextName) {
         // Browser is NOT webkit, perhaps IE11
@@ -52,26 +34,26 @@
             globalContextName = "DedicatedWorkerGlobalScope";
         }
     }
+
+    /**
+     * Transworker
+     * @constructor
+     */
     function TransWorker(){};
+
     TransWorker.context = globalContextName;
 
-    //
-    // Create for UI-thread
-    //
-    // param:
-    //      urlDerivedWorker
-    //          url to Worker process.
-    //          It must be a sub-class of
-    //          worker-side TransWorker.
-    //      clientCtor
-    //          client-class constructor
-    //      thisObject
-    //          this object for callback function
-    //      notifyHandlers
-    //          notify handlers hash:
-    //              key: name of notify,
-    //              value: function object
-    //
+    /**
+     * Create for UI-thread
+     *
+     * @param {string} urlDerivedWorker url to Worker process.
+     *      It must be a sub-class of worker-side TransWorker.
+     * @param {Function} clientCtor client-class constructor.
+     * @param {object} thisObject this object for callback function.
+     * @param {object} notifyHandlers notify handlers hash:
+     *      key: name of notify, value: function object
+     * @returns {Transworker} The created Transworker instance.
+     */
     TransWorker.createInvoker = function(
             urlDerivedWorker, clientCtor,
             thisObject, notifyHandlers)
@@ -82,6 +64,18 @@
             thisObject, notifyHandlers);
         return transworker;
     };
+
+    /**
+     * Create for UI-thread
+     *
+     * @param {string} urlDerivedWorker url to Worker process.
+     *      It must be a sub-class of worker-side TransWorker.
+     * @param {Function} clientCtor client-class constructor.
+     * @param {object} thisObject this object for callback function.
+     * @param {object} notifyHandlers notify handlers hash:
+     *      key: name of notify, value: function object
+     * @returns {undefined}
+     */
     TransWorker.prototype.createInvoker = function(
             urlDerivedWorker, clientCtor,
             thisObject, notifyHandlers)
@@ -135,7 +129,11 @@
 
     };
 
-    // Create wrapper methods to send message to the worker
+    /**
+     * Create wrapper methods to send message to the worker
+     * @param {Array<string>} method_names An array of method names to override.
+     * @returns {undefined}
+     */
     TransWorker.prototype.createWrappers = function(
             method_names)
     {
@@ -144,7 +142,11 @@
         }, this);
     };
 
-    // Create client method wrapper
+    /**
+     * Create client method wrapper
+     * @param {string} method_names An array of method names to override.
+     * @returns {Function} A wrapper function.
+     */
     TransWorker.prototype.wrapper = function(
             method)
     {
@@ -166,6 +168,13 @@
         };
     };
 
+    /**
+     * Create Worker side TransWorker instance.
+     * (designed to be invoked from sub-class constructor)
+     *
+     * @param {object} client An instance of the client class.
+     * @returns {TransWorker} an instance of TransWorker.
+     */
     TransWorker.createWorker = function(client) {
         var transworker = new TransWorker();
         if(typeof(client) == 'function') {
@@ -175,13 +184,13 @@
         return transworker;
     };
 
-    //
-    // Create Worker side TransWorker instance.
-    // (designed to be invoked from sub-class constructor)
-    //
-    // parameter:
-    //      client  client-class instance
-    //
+    /**
+     * Create Worker side TransWorker instance.
+     * (designed to be invoked from sub-class constructor)
+     *
+     * @param {object} client A instance of the client class.
+     * @returns {undefined}
+     */
     TransWorker.prototype.createWorker = function(client) {
         this.worker = globalContext;
         this.client = client;
@@ -238,9 +247,11 @@
     };
 
     if(TransWorker.context == 'Window') {
+
         TransWorker.create = TransWorker.createInvoker;
         TransWorker.prototype.create = TransWorker.prototype.createInvoker;
-    } else if( TransWorker.context == 'DedicatedWorkerGlobalScope'
+    }
+    else if( TransWorker.context == 'DedicatedWorkerGlobalScope'
             || TransWorker.context == 'WorkerGlobalScope')
     {
         TransWorker.create = TransWorker.createWorker;
@@ -252,4 +263,5 @@
     } catch(err) {
         globalContext.TransWorker = TransWorker;
     }
+
 }(Function("return this;")()));
