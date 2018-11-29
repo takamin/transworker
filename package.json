@@ -4,7 +4,8 @@
   "description": "An inter thread method invoker. This module yields the interfaces for the main thread to invoke the instance methods of the class by peeping that prototype.",
   "main": "transworker.js",
   "scripts": {
-    "test": "node sample/webserver.js"
+    "sample": "node sample/webserver.js",
+    "test": "parcel build --out-dir dist --out-file test-class-worker-bundle.js test/test-class-worker.js && parcel test/test.html --open"
   },
   "repository": {
     "type": "git",
@@ -21,8 +22,14 @@
   },
   "homepage": "http://takamints.hatenablog.jp/entry/2016/01/31/mutithreading-javascript-on-a-browser-using-a-web-workers-api",
   "devDependencies": {
+    "chai": "^4.2.0",
     "connect": "^3.6.0",
+    "mocha": "^5.2.0",
     "opn": "^4.0.2",
+    "parcel-bundler": "^1.10.3",
     "serve-static": "^1.12.1"
+  },
+  "dependencies": {
+    "babel-polyfill": "^6.26.0"
   }
 }
