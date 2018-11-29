@@ -1,39 +1,48 @@
-transworker - JavaScriptマルチスレッド化ヘルパークラス
-================================================
+transworker - WebWorker リモートメソッド呼び出しヘルパー
+========================================================
 
 ![](image/readme_top.png "TransWorker")  
-photo credit: <a href="http://www.flickr.com/photos/57763385@N03/16058283699">Pallet</a> via <a href="http://photopin.com">photopin</a> <a href="https://creativecommons.org/licenses/by-nc-nd/2.0/">(license)</a>
+photo credit: <a href="http://www.flickr.com/photos/57763385@N03/16058283699">Pallet</a>
+via <a href="http://photopin.com">photopin</a>
+<a href="https://creativecommons.org/licenses/by-nc-nd/2.0/">(license)</a>
 
 概要
 ----
 
-TransWorkerは、
-JavaScriptの任意のクラスのインスタンスをWebWorkerのワーカースレッド側に生成し、
-メインスレッド側からメソッドを呼び出せるようにするモジュールです。
+TransWorkerは__WebWorkerのリモートメソッド呼び出しヘルパー__クラスです。
 
-この任意のクラスのことを、当ドキュメントではクライアントクラスと呼ぶことにします。
+メインスレッドとワーカースレッドの両コンテキストでインスタンスを生成し、
+スレッド間メッセージによって、メインスレッド側からワーカースレッドの、
+メソッドを呼び出せるようにするものです。
 
-TransWorkerのインスタンスは、ひとつのクライアントクラスに対して、
-メインスレッドとワーカースレッドで生成され、その間で通信します。
+このため、すべての呼び出しが非同期呼び出しとなります。
+また、処理はワーカースレッドで実行されますので、メインスレッド側の処理をブロックしません。
 
-メインスレッド側では、クライアントクラスのプロトタイプを読み取って、
-TransWorkerオブジェクト内に、同名のメソッドを生成します。
-このメソッドでは、WebWorkerのメッセージ機能を利用して、
-ワーカースレッド側のTransWorkerオブジェクトに対して、
-同名のメソッド呼び出しを要求します。
+TransWorkerオブジェクトの生成
+-----------------------------
 
-ワーカースレッド側では、クライアントクラスのインスタンスのメソッドを呼び出して、
-その戻り値をメインスレッドへ返します。
+メインスレッド側で、TransWorkerのインスタンスを生成するには、
+__ワーカースレッドで動作するスクリプトのURL__と、
+そこで動作させようとしている__クラスの定義（コンストラクタ）__を与えます。
+
+ワーカースレッドのスクリプトでも、同じクラスのインスタンスを与えて、
+TransWorkerオブジェクトを生成しておきます。
+
+メソッド呼び出しをスレッド間のメッセージ送受信に変換
+----------------------------------------------------
+
+メインスレッド側のTransWorkerは、与えられたクラスに定義されているインスタンスメソッドのラッパー関数を
+__TransWorkerオブジェクト内に生成__します。
+これらラッパー関数は、ワーカースレッドへメソッド呼び出しのためのメッセージを送信します。
+
+ワーカースレッドのTransWorkerオブジェクトは、メインスレッドからこのメッセージを受信すると、
+インスタンスメソッドを呼び出します。戻り値はメインスレッドへメッセージにより返されます。
 
 
-メインスレッド向けAPI
----------------------
+メインスレッド側インスタンス生成
+--------------------------------
 
-### TransWorker.create
-
-__TransWorker.create(urlDerivedWorker, clientCtor, thisObject, notifyHandlers)__
-
-__DESCRIPTION__
+__TransWorker.createInvoker(urlDerivedWorker, clientCtor, thisObject, notifyHandlers)__
 
 メインスレッド側で利用できるTransWorkerオブジェクトを生成します。
 
@@ -61,14 +70,10 @@ __RETURNS__
 第二引数に指定されたクラスのメソッドをすべて持った、
 TransWorkerインスタンスを返します。
 
-ワーカースレッド向けAPI
------------------------
+ワーカースレッド側インスタンス生成
+----------------------------------
 
-### TransWorker.create
-
-__TransWorker.create(client)__
-
-__DESCRIPTION__
+__TransWorker.createWorker(client)__
 
 ワーカースレッドで動作するTransWorkerオブジェクトを生成します。
 このオブジェクトがメインスレッドからの通知により第一引数で指定される
@@ -85,16 +90,14 @@ __DETAILS__
 `_transworker`というフィールドを追加します。
 これにより、postNotifyメソッドを呼び出せます。
 
-
 __RETURNS__
 
 ワーカースレッド側のTransWorkerインスタンスを返します。
 
-### transworker.postNotify
+ワーカーからメインスレッドへの通知
+----------------------------------
 
 __transworker.postNotify(name, parameter)__
-
-__DESCRIPTION__
 
 メインスレッド側のTransWorkerオブジェクトへ通知を送信します。
 
@@ -163,7 +166,7 @@ __prime\_worker.js__
 ```javascript
 importScripts('path/to/the/transworker.js');
 importScripts('prime.js');
-TransWorker.create(Prime);
+TransWorker.createWorker(Prime);
 ```
 
 ### 3. メインスレッド側のコード / Main thread codes
@@ -220,7 +223,7 @@ span { display:inline-block; padding:10px; margin:2px; }
     }, 1);
 
     var lastResultMt = document.getElementById('lastResultMt');
-    var prime_worker = TransWorker.create("./prime_worker.js", Prime, this);
+    var prime_worker = TransWorker.createInvoker("./prime_worker.js", Prime, this);
     window.setInterval(function() {
         prime_worker.getNextPrime(function(num) {
             lastResultMt.innerHTML = JSON.stringify(num);
@@ -231,11 +234,6 @@ span { display:inline-block; padding:10px; margin:2px; }
 </body>
 </html>
 ```
-
-CHANGES
--------
-
-* v1.0.1 - Use strict. Edit README.
 
 LICENSE
 -------
