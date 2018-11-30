@@ -4,15 +4,14 @@
         <title>meteor-shower</title>
     </head>
     <body>
-        <div id="webWorkerSample"></div>
-        <script src="https://code.jquery.com/jquery-3.3.1.min.js"
-                integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
-                crossorigin="anonymous"></script>
+        <div id="app"></div>
         <script src="../../transworker.js"></script>
         <script src="meteor.js"></script>
-        <script src="meteorshower.js"></script>
-        <script src="meteorshower.js"></script>
+        <script src="meteor-shower.js"></script>
         <script src="app.js"></script>
-        <script src="index.js"></script>
+        <script>
+            App(document.querySelector("#app"),
+                640, 480, "#004", "#044");
+        </script>
     </body>
 </html>
