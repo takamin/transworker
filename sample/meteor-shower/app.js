@@ -1,56 +1,57 @@
-function WebWorkerSample($container, width, height, backcolor1, backcolor2) {
-    var $canvas = $("<canvas/>").css("width", width + "px").css("height", height + "px");
-    this.canvas = $canvas.get(0);
-    this.width = width;
-    this.height = height;
-    $container
-        .append($("<input/>").attr("name", "workerUsage").attr("type", "radio").attr("value", "nouse")
-                .attr("checked", "checked"))
-        .append($("<label/>").attr("for", "workerUsage").html("Single threading (using setInterval)"))
-        .append($("<input/>").attr("name", "workerUsage").attr("type", "radio").attr("value", "use"))
-        .append($("<label/>").attr("for", "workerUsage").html("Multi threading(using worker)"))
-        .append($("<div/>").css("background-color", "#002").append($canvas));
-    this.tid = null;
-    this.ctx = this.canvas.getContext('2d');
-    this.singleApp = new MeteorShower(this.ctx);
-    this.singleApp.setWidth(width);
-    this.singleApp.setHeight(height);
-    this.singleApp.setBackcolor(backcolor1);
-    this.singleApp.setCount(1000);
-    this.singleApp.initialize();
+"use strict";
+function App(container, width, height, backcolor1, backcolor2) {
+    container.insertAdjacentHTML("beforeend", `
+        <input type="radio" id="workerUsageNoUse" name="workerUsage" value="nouse"
+               checked="checked"/>
+        <label for="workerUsageNoUse">Single threading (using setInterval)</label>
+        <input type="radio" id="workerUsageUse" name="workerUsage" value="use" />
+        <label for="workerUsageUse">Multi threading (using worker)</label>
+        <div style="background-color: #002">
+            <canvas style="width:${width}px;height:${height}px"></canvas>
+        </div>`
+    );
 
-    this.multiApp = new TransWorker();
-    this.multiApp.create(
-            "sampleworker.js",
-            MeteorShower, this, {
-            "fillRects": function(fillRects) {
-                fillRects.forEach(function(rect) {
-                    this.ctx.fillStyle = rect.fillColor;
-                    this.ctx.fillRect(
-                        rect.x, rect.y,
-                        rect.w, rect.h);
-                }, this);
+    const canvas = container.querySelector("canvas");
+    const ctx = canvas.getContext('2d');
+    const singleApp = new MeteorShower(ctx);
+    singleApp.setWidth(width);
+    singleApp.setHeight(height);
+    singleApp.setBackcolor(backcolor1);
+    singleApp.setCount(1000);
+    singleApp.initialize();
+
+    const multiApp = new TransWorker();
+    multiApp.create(
+        "meteor-shower-worker.js",
+        MeteorShower, this, {
+        "fillRects": fillRects => {
+            for(const rect of fillRects) {
+                ctx.fillStyle = rect.fillColor;
+                ctx.fillRect(
+                    rect.x, rect.y,
+                    rect.w, rect.h);
             }
-        });
-    this.multiApp.setWidth(width, null);
-    this.multiApp.setHeight(height, null);
-    this.multiApp.setBackcolor(backcolor2, null);
-    this.multiApp.setCount(1000, null);
-    this.multiApp.initialize();
+        }
+    });
+    multiApp.setWidth(width, null);
+    multiApp.setHeight(height, null);
+    multiApp.setBackcolor(backcolor2, null);
+    multiApp.setCount(1000, null);
+    multiApp.initialize();
 
-    this.usingWorker = false;
-    $container.find("[name='workerUsage']").change((function(app) {
-        return function () {
-            if(app.usingWorker) {
-                app.multiApp.stop(function() {
-                    app.singleApp.start();
-                });
+    let usingWorker = false;
+    const radios = container.querySelectorAll("[name='workerUsage']");
+    for(const inp of radios) {
+        inp.addEventListener("change", () => {
+            if(usingWorker) {
+                multiApp.stop(
+                    () => singleApp.start());
             } else {
-                app.singleApp.stop();
-                app.multiApp.start();
+                singleApp.stop();
+                multiApp.start();
             }
-            app.usingWorker = ($(this).val() == 'use');
-        };
-    }(this)));
-    this.singleApp.start();
+            usingWorker = (inp.value === "use");
+        });
+    }
+    singleApp.start();
 };
