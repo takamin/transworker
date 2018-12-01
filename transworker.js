@@ -1,4 +1,4 @@
-/**
+/*
  * TransWorker - Yields the interfaces for the main thread to
  * communicate with a class instance running in WebWorker by
  * peeping the prototypes.
@@ -23,8 +23,15 @@
  *
  */
 "use strict";
+
+/**
+ * Transworker
+ * @constructor
+ */
+function TransWorker(){};
+
 const globalContext = (Function("return this;")());
-var globalContextName = globalContext.constructor.name;
+let globalContextName = globalContext.constructor.name;
 if(!globalContextName) {
     // Browser is NOT webkit, perhaps IE11
     if(globalContext == "[object Window]") {
@@ -33,12 +40,6 @@ if(!globalContextName) {
         globalContextName = "DedicatedWorkerGlobalScope";
     }
 }
-
-/**
- * Transworker
- * @constructor
- */
-function TransWorker(){};
 
 TransWorker.context = globalContextName;
 
@@ -57,7 +58,7 @@ TransWorker.createInvoker = function(
         urlDerivedWorker, clientCtor,
         thisObject, notifyHandlers)
 {
-    var transworker = new TransWorker();
+    const transworker = new TransWorker();
     transworker.createInvoker(
         urlDerivedWorker, clientCtor,
         thisObject, notifyHandlers);
@@ -150,15 +151,15 @@ TransWorker.prototype.wrapper = function(
         method)
 {
     return function() {
-        var callback = function(){};
-        var param = [];
+        let callback = function(){};
+        let param = [];
         if(arguments.length > 0) {
             callback = Array.prototype.slice.call(
                     arguments, -1)[0] || function(){};
             param = Array.prototype.slice.call(
                     arguments, 0, arguments.length - 1);
         }
-        var queryId = this.queryId++;
+        const queryId = this.queryId++;
         this.callbacks[queryId] = callback;
         this.worker.postMessage({
             method: method,
@@ -175,7 +176,7 @@ TransWorker.prototype.wrapper = function(
  * @returns {TransWorker} an instance of TransWorker.
  */
 TransWorker.createWorker = function(client) {
-    var transworker = new TransWorker();
+    const transworker = new TransWorker();
     if(typeof(client) == 'function') {
         client = new client();
     }
