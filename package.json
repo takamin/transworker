@@ -5,7 +5,7 @@
   "main": "transworker.js",
   "scripts": {
     "sample": "node sample/webserver.js",
-    "test": "parcel build --out-dir dist --out-file test-class-worker-bundle.js test/test-class-worker.js && parcel test/test.html --open"
+    "test": "node bin/build-test.js && parcel test/test.html --open"
   },
   "repository": {
     "type": "git",
