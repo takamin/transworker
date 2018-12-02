@@ -151,20 +151,18 @@ TransWorker.prototype.wrapper = function(
         method)
 {
     return function() {
-        let callback = function(){};
-        let param = [];
-        if(arguments.length > 0) {
-            callback = Array.prototype.slice.call(
-                    arguments, -1)[0] || function(){};
-            param = Array.prototype.slice.call(
-                    arguments, 0, arguments.length - 1);
-        }
         const queryId = this.queryId++;
-        this.callbacks[queryId] = callback;
+        let param = Array.from(arguments);
+        if(param.length > 0 && typeof(param.slice(-1)[0]) === "function") {
+            this.callbacks[queryId] = param.splice(-1, 1)[0];
+        } else {
+            this.callbacks[queryId] = (()=>{});
+        }
         this.worker.postMessage({
             method: method,
             param: param,
-            queryId: queryId });
+            queryId: queryId
+        });
     };
 };
 
