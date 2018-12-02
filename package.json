@@ -28,9 +28,26 @@
     "mocha": "^5.2.0",
     "opn": "^4.0.2",
     "parcel-bundler": "^1.10.3",
+    "parcel-plugin-eslint": "^1.0.4",
     "serve-static": "^1.12.1"
   },
   "dependencies": {
     "babel-polyfill": "^6.26.0"
+  },
+  "eslintConfig": {
+    "parserOptions": {
+      "ecmaVersion": 2017
+    },
+    "env": {
+      "es6": true,
+      "browser": true,
+      "node": true,
+      "mocha": true
+    },
+    "rules": {
+      "no-console": "off",
+      "valid-jsdoc": "warn"
+    },
+    "extends": "eslint:recommended"
   }
 }

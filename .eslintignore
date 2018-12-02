@@ -1,0 +1,4 @@
+/dist
+/.cache
+/transworker.js
+/node_modules

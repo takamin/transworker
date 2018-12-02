@@ -28,7 +28,7 @@
  * Transworker
  * @constructor
  */
-function TransWorker(){};
+function TransWorker(){}
 
 const globalContext = (Function("return this;")());
 let globalContextName = globalContext.constructor.name;
@@ -131,24 +131,24 @@ TransWorker.prototype.createInvoker = function(
 
 /**
  * Create wrapper methods to send message to the worker
- * @param {Array<string>} method_names An array of method names to override.
+ * @param {Array<string>} methodNames An array of method names to override.
  * @returns {undefined}
  */
 TransWorker.prototype.createWrappers = function(
-        method_names)
+        methodNames)
 {
-    method_names.forEach(function(m) {
-        TransWorker.prototype[m] = this.wrapper(m);
-    }, this);
+    for(const methodName of methodNames) {
+        TransWorker.prototype[methodName] = this.wrapper(methodName);
+    }
 };
 
 /**
  * Create client method wrapper
- * @param {string} method_names An array of method names to override.
+ * @param {string} methodName A method name to override.
  * @returns {Function} A wrapper function.
  */
 TransWorker.prototype.wrapper = function(
-        method)
+        methodName)
 {
     return function() {
         const queryId = this.queryId++;
@@ -159,7 +159,7 @@ TransWorker.prototype.wrapper = function(
             this.callbacks[queryId] = (()=>{});
         }
         this.worker.postMessage({
-            method: method,
+            method: methodName,
             param: param,
             queryId: queryId
         });
@@ -261,4 +261,5 @@ globalContext.TransWorker = TransWorker;
 try {
     module.exports = TransWorker;
 } catch(err) {
+    // none
 }
