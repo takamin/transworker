@@ -1,6 +1,6 @@
 "use strict"
 const assert = require("chai").assert;
-const TransWorker = require("../transworker.js");
+const TransWorker = require("../index.js");
 const TestClass = require("./test-class.js");
 describe("TransWorker", () => {
     describe("Instance in the main thread", () => {
@@ -21,7 +21,7 @@ describe("TransWorker", () => {
                 assert.isNotNull(tw.worker);
             });
         });
-        describe("The created wrapper methods by createInvoker", async () => {
+        describe("The wrapper methods created by createInvoker", async () => {
             it("should be invoked when the callback is specified", () => {
                 assert.doesNotThrow(() => {
                     const tw = TransWorker.createInvoker(
@@ -43,6 +43,19 @@ describe("TransWorker", () => {
                     const result = await new Promise(
                         resolve => tw.testMethod(s => resolve(s)));
                     assert.equal(result, "TestClass.testMethod");
+                } catch (err) {
+                    assert.fail(err.message);
+                }
+            });
+            it("should transport all parameters to worker even if the callback is omitted (issue#14)", async () => {
+                try {
+                    const result = await new Promise(resolve => {
+                        const tw = TransWorker.createInvoker(
+                            "/test-class-worker-bundle.js", TestClass, null,
+                            { "hello": message => resolve(message) });
+                        tw.requestNotify("hello", "transworker");
+                    });
+                    assert.equal(result, "transworker");
                 } catch (err) {
                     assert.fail(err.message);
                 }
@@ -102,7 +115,6 @@ describe("TransWorker", () => {
                             "/test-class-worker-bundle.js", TestClass, null,
                             {
                                 "hello": (message) => {
-                                    console.log(message);
                                     resolve(message);
                                 }
                             });
@@ -120,7 +132,6 @@ describe("TransWorker", () => {
                             "/test-class-worker-bundle.js", TestClass, null,
                             {
                                 "hello": (message) => {
-                                    console.log(message);
                                     resolve(message);
                                 }
                             });
@@ -138,7 +149,6 @@ describe("TransWorker", () => {
                             "/test-class-worker-bundle.js", TestClass, null,
                             {
                                 "hello": (message) => {
-                                    console.log(message);
                                     resolve(message);
                                 }
                             });
