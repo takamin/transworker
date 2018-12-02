@@ -166,7 +166,7 @@ describe("TransWorker", () => {
                     const notificationCaller = await new Promise( resolve => {
                         const tw = TransWorker.createInvoker(
                             "/test-class-worker-bundle.js", TestClass, null,
-                            { "hello": function(message) { resolve(this); } });
+                            { "hello": function() { resolve(this); } });
                         tw.requestNotify("hello", "transworker", null);
                     });
                     assert.isNull(notificationCaller);
@@ -180,7 +180,7 @@ describe("TransWorker", () => {
                     const notificationCaller = await new Promise( resolve => {
                         const tw = TransWorker.createInvoker(
                             "/test-class-worker-bundle.js", TestClass, thisObject,
-                            { "hello": function(message) { resolve(this); } });
+                            { "hello": function() { resolve(this); } });
                         tw.requestNotify("hello", "transworker", null);
                     });
                     assert.equal(notificationCaller, thisObject);

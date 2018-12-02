@@ -5,3 +5,4 @@ dist/
 .cache/
 *bundle.js
 *bundle.map
+jsdoc/

@@ -1,18 +1,26 @@
 /*
- * TransWorker - Yields the interfaces for the main thread to
- * communicate with a class instance running in WebWorker by
- * peeping the prototypes.
+ */
+"use strict";
+
+/**
+ * TransWorker - Inter thread method invocation helper class for the WebWorker.
  *
- * DESCRIPTION
+ * This class offers different implementations for its role on the context.
  *
- * The implementation of this class is different between
- * main and sub thread.
+ * In the main thread, It creates WebWorker instance and creates wrapper
+ * functions for all the methods declared in the prototypes of the class given
+ * in the parameters.
  *
- * The instance created in the main thread is the interface to
- * invoke methods of the instance running in the sub thread.
+ * The wrapper method sends a message to the worker with the method name and
+ * all the parameter.
  *
- * The return value of the remote method will be
- * notified to the callback function as parameter
+ * When the worker side instance received the message, it invokes the method
+ * specified by the name in the message with the parameters.
+ * The return value will be notified by the message to the main thread
+ * instance from the worker.
+ *
+ * The main thread instance that received the notification notifies the value
+ * to the callback function given at first invocation.
  *
  * LICENSE
  *
@@ -21,14 +29,9 @@
  *
  * Copyright (c) 2017 Koji Takami(vzg03566@gmail.com)
  *
- */
-"use strict";
-
-/**
- * Transworker
  * @constructor
  */
-function TransWorker(){};
+function TransWorker(){}
 
 const globalContext = (Function("return this;")());
 let globalContextName = globalContext.constructor.name;
@@ -131,24 +134,24 @@ TransWorker.prototype.createInvoker = function(
 
 /**
  * Create wrapper methods to send message to the worker
- * @param {Array<string>} method_names An array of method names to override.
+ * @param {Array<string>} methodNames An array of method names to override.
  * @returns {undefined}
  */
 TransWorker.prototype.createWrappers = function(
-        method_names)
+        methodNames)
 {
-    method_names.forEach(function(m) {
-        TransWorker.prototype[m] = this.wrapper(m);
-    }, this);
+    for(const methodName of methodNames) {
+        TransWorker.prototype[methodName] = this.wrapper(methodName);
+    }
 };
 
 /**
  * Create client method wrapper
- * @param {string} method_names An array of method names to override.
+ * @param {string} methodName A method name to override.
  * @returns {Function} A wrapper function.
  */
 TransWorker.prototype.wrapper = function(
-        method)
+        methodName)
 {
     return function() {
         const queryId = this.queryId++;
@@ -159,7 +162,7 @@ TransWorker.prototype.wrapper = function(
             this.callbacks[queryId] = (()=>{});
         }
         this.worker.postMessage({
-            method: method,
+            method: methodName,
             param: param,
             queryId: queryId
         });
@@ -261,4 +264,5 @@ globalContext.TransWorker = TransWorker;
 try {
     module.exports = TransWorker;
 } catch(err) {
+    // none
 }
