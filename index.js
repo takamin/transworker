@@ -1,18 +1,26 @@
 /*
- * TransWorker - Yields the interfaces for the main thread to
- * communicate with a class instance running in WebWorker by
- * peeping the prototypes.
+ */
+"use strict";
+
+/**
+ * TransWorker - Inter thread method invocation helper class for the WebWorker.
  *
- * DESCRIPTION
+ * This class offers different implementations for its role on the context.
  *
- * The implementation of this class is different between
- * main and sub thread.
+ * In the main thread, It creates WebWorker instance and creates wrapper
+ * functions for all the methods declared in the prototypes of the class given
+ * in the parameters.
  *
- * The instance created in the main thread is the interface to
- * invoke methods of the instance running in the sub thread.
+ * The wrapper method sends a message to the worker with the method name and
+ * all the parameter.
  *
- * The return value of the remote method will be
- * notified to the callback function as parameter
+ * When the worker side instance received the message, it invokes the method
+ * specified by the name in the message with the parameters.
+ * The return value will be notified by the message to the main thread
+ * instance from the worker.
+ *
+ * The main thread instance that received the notification notifies the value
+ * to the callback function given at first invocation.
  *
  * LICENSE
  *
@@ -21,11 +29,6 @@
  *
  * Copyright (c) 2017 Koji Takami(vzg03566@gmail.com)
  *
- */
-"use strict";
-
-/**
- * Transworker
  * @constructor
  */
 function TransWorker(){}
