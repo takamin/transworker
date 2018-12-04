@@ -1,7 +1,7 @@
 transworker - WebWorker リモートメソッド呼び出しヘルパー
 ========================================================
 
-![](image/readme_top.png "TransWorker")  
+![](https://takamin.github.io/transworker/image/readme_top.png "TransWorker")  
 photo credit: <a href="http://www.flickr.com/photos/57763385@N03/16058283699">Pallet</a>
 via <a href="http://photopin.com">photopin</a>
 <a href="https://creativecommons.org/licenses/by-nc-nd/2.0/">(license)</a>
