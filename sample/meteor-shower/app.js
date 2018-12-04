@@ -1,4 +1,14 @@
 "use strict";
+
+/**
+ * Create a meteor shower sample application.
+ * @param {HTMLElement} container A application container.
+ * @param {number} width The width of canvas.
+ * @param {number} height The height of canvas.
+ * @param {string} backcolor1 A background color for UI-thread.
+ * @param {string} backcolor2 A background color for Worker-thread.
+ * @returns {undefined}
+ */
 function App(container, width, height, backcolor1, backcolor2) {
     container.insertAdjacentHTML("beforeend", `
         <input type="radio" id="workerUsageNoUse" name="workerUsage" value="nouse"

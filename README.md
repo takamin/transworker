@@ -19,7 +19,7 @@ TransWorkerは __WebWorkerのリモートメソッド呼び出しヘルパー__ 
 
 また、処理はワーカースレッドで実行されますので、メインスレッド側の処理をブロックしません。
 
-* [API](https://takamin.github.io/transworker/docs/)
+* [API](https://takamin.github.io/transworker/docs/TransWorker.html)
 * [サンプルページ](https://takamin.github.io/transworker/sample/)
 
 TransWorkerオブジェクトの生成

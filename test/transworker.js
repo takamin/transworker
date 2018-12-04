@@ -21,7 +21,7 @@ describe("TransWorker", () => {
                 assert.isNotNull(tw.worker);
             });
         });
-        describe("The wrapper methods created by createInvoker", async () => {
+        describe("The wrapper methods created by createInvoker", () => {
             it("should be invoked when the callback is specified", () => {
                 assert.doesNotThrow(() => {
                     const tw = TransWorker.createInvoker(
@@ -61,7 +61,7 @@ describe("TransWorker", () => {
                 }
             });
         });
-        describe("Callback's caller", async () => {
+        describe("Callback's caller", () => {
             it("should be undefined when the parameter thisObject of createInvoker is omitted", async () => {
                 try {
                     const tw = TransWorker.createInvoker(
@@ -188,6 +188,107 @@ describe("TransWorker", () => {
                 } catch (err) {
                     assert.fail(err.message);
                 }
+            });
+        });
+        describe("subscribe", () => {
+            it("should entry the notification", async () => {
+                try {
+                    const notificationMessage = await new Promise( resolve => {
+                        const tw = TransWorker.createInvoker(
+                            "/test-class-worker-bundle.js", TestClass);
+                        tw.subscribe("hello", message => resolve(message));
+                        tw.requestNotify("hello", "transworker", null);
+                    });
+                    assert.deepEqual(notificationMessage, "transworker");
+                } catch (err) {
+                    assert.fail(err.message);
+                }
+            });
+            it("should entry the handler as the caller is the transworker", async () => {
+                try {
+                    const tw = TransWorker.createInvoker(
+                        "/test-class-worker-bundle.js", TestClass, "caller");
+                    const caller = await new Promise( resolve => {
+                        tw.subscribe("hello", function() {
+                            resolve(this);
+                        });
+                        tw.requestNotify("hello", "transworker", null);
+                    });
+                    assert.deepEqual(caller, tw);
+                } catch (err) {
+                    assert.fail(err.message);
+                }
+            });
+            describe("should throw,", () => {
+                describe("when the same notification was entried", () => {
+                    it("by createInvoker", () => {
+                        const tw = TransWorker.createInvoker(
+                            "/test-class-worker-bundle.js", TestClass, null,
+                            { "hello": function() {} });
+                        assert.throw(() => {
+                            tw.subscribe("hello", ()=>{});
+                        });
+                    });
+                    it("by subscribe", () => {
+                        const tw = TransWorker.createInvoker(
+                            "/test-class-worker-bundle.js", TestClass);
+                        tw.subscribe("hello", () => {});
+                        assert.throw(() => {
+                            tw.subscribe("hello", ()=>{});
+                        });
+                    });
+                });
+                describe("when the handler is", () => {
+                    it("null", () => {
+                        const tw = TransWorker.createInvoker(
+                            "/test-class-worker-bundle.js", TestClass);
+                        assert.throw(() => {
+                            tw.subscribe("hello", null);
+                        });
+                    });
+                    it("undefined", () => {
+                        const tw = TransWorker.createInvoker(
+                            "/test-class-worker-bundle.js", TestClass);
+                        assert.throw(() => {
+                            tw.subscribe("hello", undefined);
+                        });
+                    });
+                    it("an array", () => {
+                        const tw = TransWorker.createInvoker(
+                            "/test-class-worker-bundle.js", TestClass);
+                        assert.throw(() => {
+                            tw.subscribe("hello", []);
+                        });
+                    });
+                    it("an object", () => {
+                        const tw = TransWorker.createInvoker(
+                            "/test-class-worker-bundle.js", TestClass);
+                        assert.throw(() => {
+                            tw.subscribe("hello", {});
+                        });
+                    });
+                    it("a string", () => {
+                        const tw = TransWorker.createInvoker(
+                            "/test-class-worker-bundle.js", TestClass);
+                        assert.throw(() => {
+                            tw.subscribe("hello", "transworker");
+                        });
+                    });
+                    it("a number", () => {
+                        const tw = TransWorker.createInvoker(
+                            "/test-class-worker-bundle.js", TestClass);
+                        assert.throw(() => {
+                            tw.subscribe("hello", 123);
+                        });
+                    });
+                    it("a boolean", () => {
+                        const tw = TransWorker.createInvoker(
+                            "/test-class-worker-bundle.js", TestClass);
+                        assert.throw(() => {
+                            tw.subscribe("hello", true);
+                        });
+                    });
+                });
             });
         });
     });
