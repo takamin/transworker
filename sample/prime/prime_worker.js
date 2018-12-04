@@ -1,2 +1,2 @@
-importScripts('/transworker.js', 'prime.js');
+importScripts('../../transworker.js', 'prime.js');
 TransWorker.create(Prime);
