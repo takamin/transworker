@@ -11,53 +11,53 @@ span { display:inline-block; padding:10px; margin:2px; }
 </head>
 <body>
 <h1>Find Prime Numbers</h1>
-Clock: <span id="clock"></span> (The foreground thread blocks this clock to be updated)
+Clock: <span id="clock"></span> (The foreground thread blocks this clock)
 <div>
-    Find 50000 prime numbers in
-    <button type="button" id="buttonFindPrimes">Foreground thread</button>
+    Find 50000 prime numbers by
+    <button type="button" id="buttonFindPrimes">Foreground process</button>
     or
-    <button type="button" id="buttonFindPrimesMT">Background thread</button>
+    <button type="button" id="buttonFindPrimesMT">Background process</button>
     <span id="result"></span>
 </div>
 
 <script src="prime.js"></script>
-<script src="/transworker.js"></script>
+<script src="../../transworker.js"></script>
 <script type="text/javascript">
-(function() {
-    setInterval(function() {
+(() => {
+    setInterval(() => {
         document.getElementById("clock").innerHTML = (new Date()).toString();
     }, 100);
-    var numOfPrimes = 50000;
-    var result = document.getElementById('result');
-    var clearResult = function() {
+    const numOfPrimes = 50000;
+    const result = document.getElementById('result');
+    const clearResult = () => {
         result.innerHTML = "";
     };
-    var addPrime = function(prime) {
-        var spanPrime = document.createElement('SPAN');
+    const addPrime = (prime => {
+        const spanPrime = document.createElement('SPAN');
         spanPrime.innerHTML = prime;
         result.appendChild(spanPrime);
-    };
-    var listPrimes = function(primes) {
+    });
+    const listPrimes = (primes => {
         if(primes == null) {return;}
-        primes.forEach(function(prime) { addPrime(prime); });
-    };
-    document.getElementById("buttonFindPrimes").addEventListener("click", function() {
+        primes.forEach((prime) => { addPrime(prime); });
+    });
+    document.getElementById("buttonFindPrimes").addEventListener("click", () => {
         clearResult();
-        var prime = new Prime();
-        setTimeout(function() {
+        const prime = new Prime();
+        setTimeout(() => {
             prime.findPrimes(numOfPrimes);
             listPrimes(prime.getPrimes());
         }, 0);
     });
-    document.getElementById("buttonFindPrimesMT").addEventListener("click", function() {
+    document.getElementById("buttonFindPrimesMT").addEventListener("click", () => {
         clearResult();
-        var prime = TransWorker.create("./prime_worker.js", Prime, this);
-        prime.findPrimes(numOfPrimes, function() {
+        const prime = TransWorker.create("./prime_worker.js", Prime);
+        prime.findPrimes(numOfPrimes, () => {
             clearResult();
             prime.getPrimes(listPrimes);
         });
     });
-}());
+})();
 </script>
 </body>
 </html>

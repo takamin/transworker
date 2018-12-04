@@ -185,7 +185,6 @@ TransWorker.prototype.wrapper = function(
 
 /**
  * Create Worker side TransWorker instance.
- * (designed to be invoked from sub-class constructor)
  *
  * @param {object} client An instance of the client class.
  * @returns {TransWorker} an instance of TransWorker.
@@ -201,7 +200,6 @@ TransWorker.createWorker = function(client) {
 
 /**
  * Create Worker side TransWorker instance.
- * (designed to be invoked from sub-class constructor)
  *
  * @param {object} client A instance of the client class.
  * @returns {undefined}
@@ -249,8 +247,12 @@ TransWorker.prototype.createWorker = function(client) {
     }(this));
 };
 
-// Notify to the UI-thread version TransWorker instance
-// from derived class instance.
+/**
+ * Post a notify to the UI-thread TransWorker instance
+ * @param {string} name A message name.
+ * @param {any} param A message parameters.
+ * @returns {undefined}
+ */
 TransWorker.prototype.postNotify = function(
         name, param)
 {
