@@ -4,10 +4,21 @@ importScripts(
         "meteor.js",
         "meteor-shower.js"
         );
+
+/**
+ * Worker side MeteorShower.
+ * @constructor
+ */
 function MeteorShowerWorker() {
     MeteorShower.apply(this, Array.from(arguments));
 }
+
 MeteorShowerWorker.prototype = new MeteorShower();
+
+/**
+ * Override to notify to clear the canvas.
+ * @returns {undefined}
+ */
 MeteorShowerWorker.prototype.clear = function() {
     this._transworker.postNotify("fillRects", [{
         fillColor: this.backcolor,
@@ -15,6 +26,11 @@ MeteorShowerWorker.prototype.clear = function() {
         w: this.width, h: this.height
     }]);
 };
+
+/**
+ * Override to notify the drawing message.
+ * @returns {undefined}
+ */
 MeteorShowerWorker.prototype.run = function() {
     const fillRects = [];
     for(const meteor of this.meteors) {
