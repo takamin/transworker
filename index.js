@@ -131,6 +131,22 @@ TransWorker.prototype.createInvoker = function(
 };
 
 /**
+ * Register a notification to receive a message from the worker thread.
+ * @param {string} name A notification name.
+ * @param {Function} handler A notification handler.
+ * @returns {undefined}
+ */
+TransWorker.prototype.subscribe = function(name, handler) {
+    if(!handler || typeof(handler) !== "function") {
+        throw new Error(`Could not subscribe to '${name}' with the handler of non-function`);
+    }
+    if(name in this.onNotify) {
+        throw new Error(`Could not subscribe to '${name}' because it already exists`);
+    }
+    this.onNotify[name] = (...args) => handler.apply(this, args);
+};
+
+/**
  * Create wrapper methods to send message to the worker
  * @param {Array<string>} methodNames An array of method names to override.
  * @returns {undefined}
