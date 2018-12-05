@@ -1,4 +1,5 @@
 "use strict";
+const uuidv4 = require("uuid/v4");
 
 /**
  * TransWorker - Inter thread method invocation helper class for the WebWorker.
@@ -45,88 +46,116 @@ if(!globalContextName) {
 TransWorker.context = globalContextName;
 
 /**
- * Create for UI-thread
+ * Create instance for main thread.
  *
- * @param {string} urlDerivedWorker url to Worker process.
- *      It must be a sub-class of worker-side TransWorker.
+ * @param {string} workerUrl A worker url. It must use TransWorker.
  * @param {Function} clientCtor client-class constructor.
- * @param {object} thisObject this object for callback function.
- * @param {object} notifyHandlers notify handlers hash:
- *      key: name of notify, value: function object
+ * @param {object} thisObject (Optional) A caller of callback and notification.
+ * @param {object} notifyHandlers A map a notification name to the handler.
  * @returns {Transworker} The created Transworker instance.
  */
 TransWorker.createInvoker = function(
-        urlDerivedWorker, clientCtor,
+        workerUrl, clientCtor,
         thisObject, notifyHandlers)
 {
     const transworker = new TransWorker();
+    transworker._shared = false;
     transworker.createInvoker(
-        urlDerivedWorker, clientCtor,
+        workerUrl, clientCtor,
         thisObject, notifyHandlers);
     return transworker;
 };
 
 /**
- * Create for UI-thread
+ * Create instance for main thread.
  *
- * @param {string} urlDerivedWorker url to Worker process.
- *      It must be a sub-class of worker-side TransWorker.
+ * @param {string} workerUrl A worker url. It must use TransWorker.
  * @param {Function} clientCtor client-class constructor.
- * @param {object} thisObject this object for callback function.
- * @param {object} notifyHandlers notify handlers hash:
- *      key: name of notify, value: function object
+ * @param {object} thisObject (Optional) A caller of callback and notification.
+ * @param {object} notifyHandlers A map a notification name to the handler.
+ * @returns {Transworker} The created Transworker instance.
+ */
+TransWorker.createSharedInvoker = function(
+        workerUrl, clientCtor,
+        thisObject, notifyHandlers)
+{
+    const transworker = new TransWorker();
+    transworker._shared = true;
+    transworker.createInvoker(
+        workerUrl, clientCtor,
+        thisObject, notifyHandlers);
+    return transworker;
+};
+
+/**
+ * Create instance for main thread.
+ *
+ * @param {string} workerUrl A worker url. It must use TransWorker.
+ * @param {Function} clientCtor client-class constructor.
+ * @param {object} thisObject (Optional) A caller of callback and notification.
+ * @param {object} notifyHandlers A map a notification name to the handler.
  * @returns {undefined}
  */
 TransWorker.prototype.createInvoker = function(
-        urlDerivedWorker, clientCtor,
+        workerUrl, clientCtor,
         thisObject, notifyHandlers)
 {
-    // Load dedicated worker
-    this.worker = new Worker(urlDerivedWorker);
+    // Receive message from worker thread
+    this.callbacks = {};
+    this._uuid = uuidv4();
+    this.queryId = 0;
+    console.log(`uuid:${this._uuid}`);
+    this.onNotify = {};
+    this._callbacker = thisObject;
+
+    const onReceiveMessage = (e => {
+        switch(e.data.type) {
+        case 'response':
+            try {
+                if(e.data.uuid !== this._uuid) {
+                    console.log(`unknwon uuid:${e.data.uuid}`);
+                    break;
+                }
+                this.callbacks[e.data.queryId].apply(
+                        this._callbacker, e.data.param);
+            } catch(ex) {
+                console.warn("*** exception: ", ex,
+                    "in method", e.data.method, "params:",
+                    JSON.stringify(e.data.param));
+            }
+            delete this.callbacks[e.data.queryId];
+            break;
+        case 'notify':
+            try {
+                this.onNotify[e.data.name](e.data.param);
+            } catch(ex) {
+                console.warn("*** exception: ", ex,
+                    "in notify", e.data.name, "params:",
+                    JSON.stringify(e.data.param));
+            }
+            break;
+        }
+    });
+    if(!this._shared) {
+        // Load dedicated worker
+        this.worker = new Worker(workerUrl);
+        this.worker.onmessage = onReceiveMessage;
+    } else {
+        this.worker = new SharedWorker(workerUrl);
+        this.worker.port.onmessage = onReceiveMessage;
+        this.worker.port.start();
+    }
 
     // Create prototype entries same to the client
     this.createWrappers(Object.keys(clientCtor.prototype));
 
-    // Receive message from worker thread
-    this.callbacks = {};
-    this.queryId = 0;
-    this.onNotify = {};
-    this.worker.onmessage = (function(wkr) {
-        return function(e) {
-            switch(e.data.type) {
-            case 'response':
-                try {
-                    wkr.callbacks[e.data.queryId].apply(
-                            thisObject, e.data.param);
-                } catch(ex) {
-                    console.warn("*** exception: ", ex,
-                        "in method", e.data.method, "params:",
-                        JSON.stringify(e.data.param));
-                }
-                delete wkr.callbacks[e.data.queryId];
-                break;
-            case 'notify':
-                try {
-                    wkr.onNotify[e.data.name](
-                            e.data.param);
-                } catch(ex) {
-                    console.warn("*** exception: ", ex,
-                        "in notify", e.data.name, "params:",
-                        JSON.stringify(e.data.param));
-                }
-                break;
-            }
-        };
-    }(this));
-
     // Entry the handlers to receive notifies
     notifyHandlers = notifyHandlers || {};
-    Object.keys(notifyHandlers).forEach(function (key) {
-        this.onNotify[key] = function() {
-            notifyHandlers[key].apply(
-                    thisObject, arguments);
-        };
-    }, this);
+    Object.keys(notifyHandlers).forEach(key => {
+        this.onNotify[key] = ((...args) => {
+            notifyHandlers[key].apply(this._callbacker, args);
+        });
+    });
 
 };
 
@@ -167,6 +196,7 @@ TransWorker.prototype.createWrappers = function(
 TransWorker.prototype.wrapper = function(
         methodName)
 {
+    const port = (this._shared ? this.worker.port : this.worker);
     return (...param) => {
         const queryId = this.queryId++;
         if(param.length > 0 && typeof(param.slice(-1)[0]) === "function") {
@@ -174,22 +204,40 @@ TransWorker.prototype.wrapper = function(
         } else {
             this.callbacks[queryId] = (()=>{});
         }
-        this.worker.postMessage({
+        port.postMessage({
             method: methodName,
             param: param,
+            uuid: this._uuid,
             queryId: queryId
         });
     };
 };
 
 /**
- * Create Worker side TransWorker instance.
+ * Create a Worker side TransWorker instance.
  *
  * @param {object} client An instance of the client class.
  * @returns {TransWorker} an instance of TransWorker.
  */
 TransWorker.createWorker = function(client) {
     const transworker = new TransWorker();
+    transworker._shared = false;
+    if(typeof(client) == 'function') {
+        client = new client();
+    }
+    transworker.createWorker(client);
+    return transworker;
+};
+
+/**
+ * Create a TransWorker having SharedWorker on the worker side.
+ *
+ * @param {object} client An instance of the client class.
+ * @returns {TransWorker} an instance of TransWorker.
+ */
+TransWorker.createSharedWorker = function(client) {
+    const transworker = new TransWorker();
+    transworker._shared = true;
     if(typeof(client) == 'function') {
         client = new client();
     }
@@ -206,44 +254,52 @@ TransWorker.createWorker = function(client) {
 TransWorker.prototype.createWorker = function(client) {
     this.worker = globalContext;
     this.client = client;
+    this.port = null;
 
     // Make the client to be able to use this module
     this.client._transworker = this;
 
-    (function(wkr) {
-
-        // Override subclas methods by this context
-        Object.keys(wkr.constructor.prototype)
-        .forEach(function(m) {
-            wkr.client[m] = function() {
-                wkr.constructor.prototype[m].apply(
-                    wkr, arguments);
-            };
+    // Override subclas methods by this context
+    Object.keys(this.constructor.prototype)
+    .forEach(m => {
+        this.client[m] = ((...args) => {
+            this.constructor.prototype[m].apply(this, args);
         });
+    });
 
-        // On receive a message, invoke the client
-        // method and post back its value.
-        wkr.worker.onmessage = function(e) {
-            try {
-                //return the value to UI-thread
-                wkr.worker.postMessage({
-                    type:'response',
-                    queryId: e.data.queryId,
-                    method: e.data.method,
-                    param: [
-                        wkr.client[e.data.method]
-                        .apply(
-                            wkr.client,
-                            e.data.param)
-                    ]
-                });
-            } catch(ex) {
-                console.warn("*** exception: ", ex,
-                    "in method", e.data.method, "params:",
-                    JSON.stringify(e.data.param));
-            }
-        };
-    }(this));
+    // On receive a message, invoke the client
+    // method and post back its value.
+    const onReceiveMessage = (e => {
+        try {
+            //return the value to UI-thread
+            console.log(`Worker receives a uuid:${e.data.uuid}`);
+            this.port.postMessage({
+                type:'response',
+                uuid: e.data.uuid,
+                queryId: e.data.queryId,
+                method: e.data.method,
+                param: [
+                    this.client[e.data.method].apply(
+                        this.client, e.data.param)
+                ]
+            });
+        } catch(ex) {
+            console.warn("*** exception: ", ex,
+                "in method", e.data.method, "params:",
+                JSON.stringify(e.data.param));
+        }
+    });
+
+    if(this._shared) {
+        this.worker.onconnect = e => {
+            this.port = e.ports[0];
+            this.port.addEventListener("message", onReceiveMessage);
+            this.port.start();
+        }
+    } else {
+        this.port = this.worker;
+        this.port.onmessage = onReceiveMessage;
+    }
 };
 
 /**
@@ -255,7 +311,7 @@ TransWorker.prototype.createWorker = function(client) {
 TransWorker.prototype.postNotify = function(
         name, param)
 {
-    this.worker.postMessage({
+    this.port.postMessage({
         type:'notify',
         name: name,
         param: param
