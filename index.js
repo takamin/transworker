@@ -157,6 +157,11 @@ TransWorker.prototype.createInvoker = function(
         });
     });
 
+    if(this._shared) {
+        this.subscribe("TransWorker.post_log", msg => console.log(msg));
+        this.subscribe("TransWorker.post_error", msg => console.err(msg));
+        this.subscribe("TransWorker.post_warn", msg => console.warn(msg));
+    }
 };
 
 /**
@@ -258,6 +263,16 @@ TransWorker.prototype.createWorker = function(client) {
 
     // Make the client to be able to use this module
     this.client._transworker = this;
+
+    if(this._shared) {
+        globalContext.console = {
+            "post" : (method, args) => this.postNotify(
+                `TransWorker.post_${method}`, args.join(" ")),
+            "log"  : (...args) => console.post("log", args),
+            "error": (...args) => console.post("error", args),
+            "warn" : (...args) => console.post("warn", args),
+        };
+    }
 
     // Override subclas methods by this context
     Object.keys(this.constructor.prototype)
