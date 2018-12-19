@@ -167,9 +167,8 @@ TransWorker.prototype.createWrappers = function(
 TransWorker.prototype.wrapper = function(
         methodName)
 {
-    return function() {
+    return (...param) => {
         const queryId = this.queryId++;
-        let param = Array.from(arguments);
         if(param.length > 0 && typeof(param.slice(-1)[0]) === "function") {
             this.callbacks[queryId] = param.splice(-1, 1)[0];
         } else {
