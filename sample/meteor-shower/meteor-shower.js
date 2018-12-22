@@ -1,4 +1,5 @@
-"use strict"
+"use strict";
+const Meteor = require("./meteor.js");
 
 /**
  * MeteorShower.
@@ -15,7 +16,7 @@ function MeteorShower(ctx) {
 /**
  * Set the width of canvas.
  * @param {number} width a canvas drawing width.
- * returns {undefined}
+ * @returns {undefined}
  */
 MeteorShower.prototype.setWidth = function(width) {
     this.width = width;
@@ -24,7 +25,7 @@ MeteorShower.prototype.setWidth = function(width) {
 /**
  * Set the height of canvas.
  * @param {number} height a canvas drawing height.
- * returns {undefined}
+ * @returns {undefined}
  */
 MeteorShower.prototype.setHeight = function(height) {
     this.height = height;
@@ -33,7 +34,7 @@ MeteorShower.prototype.setHeight = function(height) {
 /**
  * Set the background color of canvas.
  * @param {number|string} backcolor A background color.
- * returns {undefined}
+ * @returns {undefined}
  */
 MeteorShower.prototype.setBackcolor = function(backcolor) {
     this.backcolor = backcolor;
@@ -42,7 +43,7 @@ MeteorShower.prototype.setBackcolor = function(backcolor) {
 /**
  * Set count of meteors.
  * @param {number} count A count of meteor.
- * returns {undefined}
+ * @returns {undefined}
  */
 MeteorShower.prototype.setCount = function(count) {
     this.count = count;
@@ -50,7 +51,7 @@ MeteorShower.prototype.setCount = function(count) {
 
 /**
  * Initialize a drawing property.
- * returns {undefined}
+ * @returns {undefined}
  */
 MeteorShower.prototype.initialize = function() {
     if(this.ctx != null) {
@@ -88,7 +89,7 @@ MeteorShower.prototype.getRandSpeed = function() {
 
 /**
  * Get start the shooting star.
- * returns {undefined}
+ * @returns {undefined}
  */
 MeteorShower.prototype.start = function() {
     this.clear();
@@ -97,7 +98,7 @@ MeteorShower.prototype.start = function() {
 
 /**
  * Stop the star moving.
- * returns {undefined}
+ * @returns {undefined}
  */
 MeteorShower.prototype.stop = function() {
     if(this.tid != null) {
@@ -108,7 +109,7 @@ MeteorShower.prototype.stop = function() {
 
 /**
  * Clear with the background color.
- * returns {undefined}
+ * @returns {undefined}
  */
 MeteorShower.prototype.clear = function() {
     if(this.ctx != null) {
@@ -119,7 +120,7 @@ MeteorShower.prototype.clear = function() {
 
 /**
  * Move the stars.
- * returns {undefined}
+ * @returns {undefined}
  */
 MeteorShower.prototype.run = function() {
     for(const meteor of this.meteors) {
@@ -139,3 +140,5 @@ MeteorShower.prototype.run = function() {
         }
     }
 };
+
+module.exports = MeteorShower;
