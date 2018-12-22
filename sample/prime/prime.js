@@ -1,40 +1,40 @@
 function Prime() {
     this.primes = [];
-    this.num = 1;
+    this.tid = null;
 }
+
+Prime.prototype.start = function() {
+    if(this.tid != null) {
+        console.log("Already started");
+        return;
+    }
+    let prime = 1;
+    this.tid = setInterval(()=> {
+        let i = 0;
+        while(i < 1) {
+            prime = this.getNextPrimeOf(prime)
+            this.primes.push(prime);
+            this._transworker.postNotify("primeNumber", prime);
+            i++;
+        }
+    }, 1);
+};
+
+Prime.prototype.getNextPrimeOf = function(n) {
+    for(;;) {
+        n++;
+        if(this.isPrime(n)) {
+            return n;
+        }
+    }
+};
 Prime.prototype.isPrime = function(n) {
-    for(var i = 0; i < this.primes.length; i++) {
-        if((n % this.primes[i]) == 0) {
+    for(const prime of this.primes) {
+        if((n % prime) == 0) {
             return false;
         }
     }
     return true;
-}
-Prime.prototype.getNextPrime = function() {
-    while(true) {
-        this.num++;
-        if(this.isPrime(this.num)) {
-            this.primes.push(this.num);
-            return this.num;
-        }
-    }
-    return null;
 };
-Prime.prototype.getLastPrime = function() {
-    if(this.primes.length <= 0) {
-        return null;
-    }
-    return this.primes[this.primes.length - 1];
-};
-Prime.prototype.getPrimes = function() {
-    return this.primes;
-};
-Prime.prototype.findPrimes = function(count) {
-    var i = 0;
-    while(i < count) {
-        if(this.getNextPrime() != null) {
-            i++;
-        }
-    }
-    return this.getLastPrime();
-};
+
+module.exports = Prime;

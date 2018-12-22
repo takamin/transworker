@@ -1,3 +1,5 @@
+"use strict";
+
 function Meteor(px, py, vx, vy, color) {
     this.px = px;
     this.py = py;
@@ -21,3 +23,4 @@ Meteor.prototype.getPos = function() {
     return {x: this.px, y: this.py, color: this.color };
 };
 
+module.exports = Meteor;
