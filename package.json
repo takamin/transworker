@@ -1,7 +1,7 @@
 {
   "name": "transworker",
-  "version": "1.0.7",
-  "description": "An inter thread method invoker. This module yields the interfaces for the main thread to invoke the instance methods of the class by peeping that prototype.",
+  "version": "1.1.0",
+  "description": "A Module to make WebWorker easier to use.",
   "main": "index.js",
   "scripts": {
     "build": "parcel build --out-dir . --out-file transworker.js index.js",
