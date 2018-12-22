@@ -109,7 +109,7 @@ http://opensource.org/licenses/mit-license.php</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="index.js.html">index.js</a>, <a href="index.js.html#line32">line 32</a>
+        <a href="index.js.html">index.js</a>, <a href="index.js.html#line33">line 33</a>
     </li></ul></dd>
     
 
@@ -163,7 +163,7 @@ http://opensource.org/licenses/mit-license.php</p>
     
 
     
-    <h4 class="name" id=".createInvoker"><span class="type-signature">(static) </span>createInvoker<span class="signature">(urlDerivedWorker, clientCtor, thisObject, notifyHandlers)</span><span class="type-signature"> &rarr; {Transworker}</span></h4>
+    <h4 class="name" id=".createInvoker"><span class="type-signature">(static) </span>createInvoker<span class="signature">(workerUrl, clientCtor, thisObject, notifyHandlers)</span><span class="type-signature"> &rarr; {Transworker}</span></h4>
     
 
     
@@ -171,7 +171,7 @@ http://opensource.org/licenses/mit-license.php</p>
 
 
 <div class="description">
-    <p>Create for UI-thread</p>
+    <p>Create instance for main thread.</p>
 </div>
 
 
@@ -207,7 +207,7 @@ http://opensource.org/licenses/mit-license.php</p>
 
         <tr>
             
-                <td class="name"><code>urlDerivedWorker</code></td>
+                <td class="name"><code>workerUrl</code></td>
             
 
             <td class="type">
@@ -223,8 +223,7 @@ http://opensource.org/licenses/mit-license.php</p>
 
             
 
-            <td class="description last"><p>url to Worker process.
-     It must be a sub-class of worker-side TransWorker.</p></td>
+            <td class="description last"><p>A worker url. It must use TransWorker.</p></td>
         </tr>
 
     
@@ -270,7 +269,7 @@ http://opensource.org/licenses/mit-license.php</p>
 
             
 
-            <td class="description last"><p>this object for callback function.</p></td>
+            <td class="description last"><p>(Optional) A caller of callback and notification.</p></td>
         </tr>
 
     
@@ -293,8 +292,7 @@ http://opensource.org/licenses/mit-license.php</p>
 
             
 
-            <td class="description last"><p>notify handlers hash:
-     key: name of notify, value: function object</p></td>
+            <td class="description last"><p>A map a notification name to the handler.</p></td>
         </tr>
 
     
@@ -335,7 +333,7 @@ http://opensource.org/licenses/mit-license.php</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="index.js.html">index.js</a>, <a href="index.js.html#line58">line 58</a>
+        <a href="index.js.html">index.js</a>, <a href="index.js.html#line57">line 57</a>
     </li></ul></dd>
     
 
@@ -391,7 +389,7 @@ http://opensource.org/licenses/mit-license.php</p>
     
 
     
-    <h4 class="name" id=".createWorker"><span class="type-signature">(static) </span>createWorker<span class="signature">(client)</span><span class="type-signature"> &rarr; {<a href="TransWorker.html">TransWorker</a>}</span></h4>
+    <h4 class="name" id=".createSharedInvoker"><span class="type-signature">(static) </span>createSharedInvoker<span class="signature">(workerUrl, clientCtor, thisObject, notifyHandlers)</span><span class="type-signature"> &rarr; {Transworker}</span></h4>
     
 
     
@@ -399,7 +397,233 @@ http://opensource.org/licenses/mit-license.php</p>
 
 
 <div class="description">
-    <p>Create Worker side TransWorker instance.</p>
+    <p>Create instance for main thread.</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>workerUrl</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>A worker url. It must use TransWorker.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>clientCtor</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">function</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>client-class constructor.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>thisObject</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>(Optional) A caller of callback and notification.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>notifyHandlers</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>A map a notification name to the handler.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="index.js.html">index.js</a>, <a href="index.js.html#line78">line 78</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>The created Transworker instance.</p>
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Transworker</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id=".createSharedWorker"><span class="type-signature">(static) </span>createSharedWorker<span class="signature">(client)</span><span class="type-signature"> &rarr; {<a href="TransWorker.html">TransWorker</a>}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    <p>Create a TransWorker having SharedWorker on the worker side.</p>
 </div>
 
 
@@ -492,7 +716,7 @@ http://opensource.org/licenses/mit-license.php</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="index.js.html">index.js</a>, <a href="index.js.html#line192">line 192</a>
+        <a href="index.js.html">index.js</a>, <a href="index.js.html#line243">line 243</a>
     </li></ul></dd>
     
 
@@ -548,7 +772,7 @@ http://opensource.org/licenses/mit-license.php</p>
     
 
     
-    <h4 class="name" id="createInvoker"><span class="type-signature"></span>createInvoker<span class="signature">(urlDerivedWorker, clientCtor, thisObject, notifyHandlers)</span><span class="type-signature"> &rarr; {undefined}</span></h4>
+    <h4 class="name" id=".createWorker"><span class="type-signature">(static) </span>createWorker<span class="signature">(client)</span><span class="type-signature"> &rarr; {<a href="TransWorker.html">TransWorker</a>}</span></h4>
     
 
     
@@ -556,7 +780,7 @@ http://opensource.org/licenses/mit-license.php</p>
 
 
 <div class="description">
-    <p>Create for UI-thread</p>
+    <p>Create a Worker side TransWorker instance.</p>
 </div>
 
 
@@ -592,7 +816,164 @@ http://opensource.org/licenses/mit-license.php</p>
 
         <tr>
             
-                <td class="name"><code>urlDerivedWorker</code></td>
+                <td class="name"><code>client</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>An instance of the client class.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="index.js.html">index.js</a>, <a href="index.js.html#line227">line 227</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>an instance of TransWorker.</p>
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="TransWorker.html">TransWorker</a></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="createInvoker"><span class="type-signature"></span>createInvoker<span class="signature">(workerUrl, clientCtor, thisObject, notifyHandlers)</span><span class="type-signature"> &rarr; {undefined}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    <p>Create instance for main thread.</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>workerUrl</code></td>
             
 
             <td class="type">
@@ -608,8 +989,7 @@ http://opensource.org/licenses/mit-license.php</p>
 
             
 
-            <td class="description last"><p>url to Worker process.
-     It must be a sub-class of worker-side TransWorker.</p></td>
+            <td class="description last"><p>A worker url. It must use TransWorker.</p></td>
         </tr>
 
     
@@ -655,7 +1035,7 @@ http://opensource.org/licenses/mit-license.php</p>
 
             
 
-            <td class="description last"><p>this object for callback function.</p></td>
+            <td class="description last"><p>(Optional) A caller of callback and notification.</p></td>
         </tr>
 
     
@@ -678,8 +1058,7 @@ http://opensource.org/licenses/mit-license.php</p>
 
             
 
-            <td class="description last"><p>notify handlers hash:
-     key: name of notify, value: function object</p></td>
+            <td class="description last"><p>A map a notification name to the handler.</p></td>
         </tr>
 
     
@@ -720,7 +1099,7 @@ http://opensource.org/licenses/mit-license.php</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="index.js.html">index.js</a>, <a href="index.js.html#line80">line 80</a>
+        <a href="index.js.html">index.js</a>, <a href="index.js.html#line99">line 99</a>
     </li></ul></dd>
     
 
@@ -873,7 +1252,7 @@ http://opensource.org/licenses/mit-license.php</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="index.js.html">index.js</a>, <a href="index.js.html#line207">line 207</a>
+        <a href="index.js.html">index.js</a>, <a href="index.js.html#line259">line 259</a>
     </li></ul></dd>
     
 
@@ -1026,7 +1405,7 @@ http://opensource.org/licenses/mit-license.php</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="index.js.html">index.js</a>, <a href="index.js.html#line154">line 154</a>
+        <a href="index.js.html">index.js</a>, <a href="index.js.html#line188">line 188</a>
     </li></ul></dd>
     
 
@@ -1202,7 +1581,7 @@ http://opensource.org/licenses/mit-license.php</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="index.js.html">index.js</a>, <a href="index.js.html#line256">line 256</a>
+        <a href="index.js.html">index.js</a>, <a href="index.js.html#line326">line 326</a>
     </li></ul></dd>
     
 
@@ -1378,7 +1757,7 @@ http://opensource.org/licenses/mit-license.php</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="index.js.html">index.js</a>, <a href="index.js.html#line139">line 139</a>
+        <a href="index.js.html">index.js</a>, <a href="index.js.html#line173">line 173</a>
     </li></ul></dd>
     
 
@@ -1531,7 +1910,7 @@ http://opensource.org/licenses/mit-license.php</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="index.js.html">index.js</a>, <a href="index.js.html#line167">line 167</a>
+        <a href="index.js.html">index.js</a>, <a href="index.js.html#line201">line 201</a>
     </li></ul></dd>
     
 
@@ -1603,7 +1982,7 @@ http://opensource.org/licenses/mit-license.php</p>
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Wed Dec 05 2018 07:01:20 GMT+0900 (東京 (標準時))
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Sat Dec 22 2018 15:16:05 GMT+0900 (東京 (標準時))
 </footer>
 
 <script> prettyPrint(); </script>

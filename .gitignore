@@ -3,6 +3,6 @@ node_modules/
 *.swp
 dist/
 .cache/
-*bundle.js
-*bundle.map
+./*bundle.js
+./*bundle.map
 jsdoc/

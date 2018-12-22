@@ -43,20 +43,135 @@
 
 
     <section>
-        <article><h1>transworker - WebWorker リモートメソッド呼び出しヘルパー</h1><p><img src="https://takamin.github.io/transworker/image/readme_top.png" alt="" title="TransWorker"><br>photo credit: <a href="http://www.flickr.com/photos/57763385@N03/16058283699">Pallet</a>
+        <article><h1>transworker - WebWorkerをメソッド呼び出し感覚で利用するモジュール</h1><p><img src="https://takamin.github.io/transworker/image/readme_top.png" alt="" title="TransWorker"><br>photo credit: <a href="http://www.flickr.com/photos/57763385@N03/16058283699">Pallet</a>
 via <a href="http://photopin.com">photopin</a>
 <a href="https://creativecommons.org/licenses/by-nc-nd/2.0/">(license)</a></p>
-<h2>概要</h2><p>TransWorkerは <strong>WebWorkerのリモートメソッド呼び出しヘルパー</strong> クラスです。</p>
-<p>メインスレッドとワーカースレッドの両コンテキストでインスタンスを生成し、
-スレッド間メッセージによって、メインスレッド側からワーカースレッドの、
-メソッドを呼び出せるようにしています。</p>
-<p>このため、すべての呼び出しが非同期呼び出しとなります。</p>
-<p>また、処理はワーカースレッドで実行されますので、メインスレッド側の処理をブロックしません。</p>
+<h2>概要</h2><p>TransWorkerは <strong>WebWorkerを手軽に扱えるようにする</strong> モジュールです。</p>
+<p>ワーカースレッドで動かしたい処理を、クラスのインスタンスメソッドとして定義して、
+メインスレッド側からワーカースレッド側のメソッドを呼び出せるようにしています。</p>
+<p>各メソッドの戻り値はメインスレッド側で呼び出し時に指定したコールバック関数に返されます。</p>
+<p>ワーカースレッド側から通知メッセージを発行することも可能です。</p>
 <ul>
 <li><a href="https://takamin.github.io/transworker/docs/TransWorker.html">API</a></li>
 <li><a href="https://takamin.github.io/transworker/sample/">サンプルページ</a></li>
 </ul>
-<h2>TransWorkerオブジェクトの生成</h2><p>メインスレッド側で、TransWorkerのインスタンスを生成するには、
+<h2>利用方法</h2><h3>バンドラーを利用する場合(オススメ)</h3><pre class="prettyprint source lang-bash"><code>npm install --save transworker</code></pre><pre class="prettyprint source lang-javascript"><code>const TransWorker = require(&quot;transworker&quot;);</code></pre><h3>HTMLから直接読み込む方法</h3><p>バンドラーを使用しない場合は、ビルド済みの transworker.js を読み込みます。
+TransWorker クラスが利用可能です。</p>
+<h4>ローカルファイルを読み込む</h4><pre class="prettyprint source lang-bash"><code>$ git clone https://github.com/takamin/transworker.git
+$ cd transworker
+$ npm install
+$ npm run build # ./transworker.js が生成されます。</code></pre><pre class="prettyprint source lang-xml"><code>&lt;html>
+・
+・
+・
+&lt;script src=&quot;${parent/of/repo}/transworker/transworker.js&quot;>&lt;/script>
+・
+・
+・
+&lt;/html></code></pre><h4>GitHub.Ioのスクリプトを読み込む（非推奨）</h4><p>本モジュールの GitHub Pages のビルド済みファイルも利用可能ですが、
+更新の制御ができませんので継続的な利用にはお勧めしません。</p>
+<pre class="prettyprint source lang-xml"><code>&lt;html>
+・
+・
+・
+&lt;script src=&quot;https://takamin.github.io/transworker/transworker.js&quot;>&lt;/script>
+・
+・
+・
+&lt;/html></code></pre><h2>SharedWorker を使ったサンプル</h2><p>ワーカースレッドで延々と素数を見つけてメインスレッドへ通知するサンプルです。</p>
+<p><strong>sample/prime/index.html</strong></p>
+<p>HTMLファイルです。表示した時から延々と素数を見つけて画面に表示します。
+あまり長時間開きっぱなしにするとページが長くなりすぎるのでよくないです。</p>
+<p>以下のSCRIPTで読み込んでいる <code>app-bundle.js</code> は、次の <code>app.js</code> をバンドルしたものです。</p>
+<pre class="prettyprint source lang-xml"><code>&lt;!doctype HTML>
+&lt;html>
+&lt;head>
+&lt;title>Find Prime Numbers&lt;/title>
+&lt;style type=&quot;text/css&quot;>
+span { display:inline-block; padding:10px; margin:2px; }
+.label {
+    width:120px; text-align:center;
+    background-color:silver; border: solid gray 1px; }
+&lt;/style>
+&lt;/head>
+&lt;body>
+&lt;h1>Find Prime Numbers&lt;/h1>
+&lt;div id=&quot;result&quot;>&lt;/div>
+&lt;script src=&quot;app-bundle.js&quot;>&lt;/script>
+&lt;/body>
+&lt;/html></code></pre><p><strong>sample/prime/app.js</strong></p>
+<p>メインスレッド側のスクリプトです。
+TransWorkerを使ってPrimeクラスのSharedWorkerを作成し、
+素数の通知を購読し、処理を開始します。</p>
+<pre class="prettyprint source lang-javascript"><code>const TransWorker = require(&quot;../../index.js&quot;);
+const Prime = require(&quot;./prime.js&quot;);
+
+const result = document.getElementById('result');
+
+const primeWorker = TransWorker.createSharedInvoker(
+    &quot;./prime-worker-bundle.js&quot;, Prime);
+
+primeWorker.subscribe(&quot;primeNumber&quot;, primeNumber => {
+    const spanPrime = document.createElement('SPAN');
+    spanPrime.innerHTML = primeNumber;
+    result.appendChild(spanPrime);
+});
+
+primeWorker.start();</code></pre><p><strong>sample/prime/prime.js</strong></p>
+<p>TransWorkerで利用する前提の素数を見つけるクラスです。
+ワーカーコンテキストで生成されて、TransWorkerを介して各メソッドが呼び出されます。</p>
+<p>素数をメインスレッドへ知らせるために利用している
+<code>_transworker</code> フィールドはTransWorkerから注入されたものです。</p>
+<p>※ メインスレッドではメソッドのインターフェースのみが利用されます。</p>
+<pre class="prettyprint source lang-javascript"><code>function Prime() {
+    this.primes = [];
+    this.tid = null;
+}
+
+Prime.prototype.start = function() {
+
+    //SharedWorkerとして実行される場合は既に実行されている
+    //可能性がある
+    if(this.tid != null) {
+        console.log(&quot;Already started&quot;);
+        return;
+    }
+
+    let prime = 1;
+    this.tid = setInterval(()=> {
+        prime = this.getNextPrimeOf(prime)
+        this.primes.push(prime);
+
+        //素数をメインスレッドへ通知
+        this._transworker.postNotify(&quot;primeNumber&quot;, prime);
+    }, 1);
+};
+
+Prime.prototype.getNextPrimeOf = function(n) {
+    for(;;) {
+        n++;
+        if(this.isPrime(n)) {
+            return n;
+        }
+    }
+};
+
+Prime.prototype.isPrime = function(n) {
+    for(const prime of this.primes) {
+        if((n % prime) == 0) {
+            return false;
+        }
+    }
+    return true;
+};
+
+module.exports = Prime;</code></pre><p><strong>sample/prime/prime-worker.js</strong></p>
+<p>メインスレッド側のTransWorkerのインスタンスから読み込まれる
+ワーカーコンテキストのスクリプトです。</p>
+<p>ここではSharedWorkerとして動作するPrimeクラスのTransWorkerを生成しています。</p>
+<pre class="prettyprint source lang-javascript"><code>const TransWorker = require(&quot;transworker.js&quot;);
+const Prime = require(&quot;./prime.js&quot;);
+TransWorker.createSharedWorker(Prime);</code></pre><h2>TransWorkerオブジェクトの生成</h2><p>メインスレッド側で、TransWorkerのインスタンスを生成するには、
 <strong>ワーカースレッドで動作するスクリプトのURL</strong> と、
 そこで動作させようとしている <strong>クラスの定義（コンストラクタ）</strong> を与えます。</p>
 <p>ワーカースレッドのスクリプトでも、同じクラスのインスタンスを与えて、
@@ -66,8 +181,9 @@ TransWorkerオブジェクトを生成しておきます。</p>
 これらラッパー関数は、ワーカースレッドへメソッド呼び出しのためのメッセージを送信します。</p>
 <p>ワーカースレッドのTransWorkerオブジェクトは、メインスレッドからこのメッセージを受信すると、
 インスタンスメソッドを呼び出します。戻り値はメインスレッドへメッセージにより返されます。</p>
-<h2>メインスレッド側インスタンス生成</h2><p><strong>TransWorker.createInvoker(urlDerivedWorker, clientCtor, thisObject, notifyHandlers)</strong></p>
-<p>メインスレッド側で利用できるTransWorkerオブジェクトを生成します。</p>
+<h2>メインスレッド側インスタンス生成</h2><p><strong>TransWorker.createInvoker(urlDerivedWorker, clientCtor, thisObject, notifyHandlers)</strong><br><strong>TransWorker.createSharedInvoker(urlDerivedWorker, clientCtor, thisObject, notifyHandlers)</strong></p>
+<p>メインスレッド側で利用できるTransWorkerオブジェクトを生成します。
+<code>createInvoker</code>はDedicatedWorkerを、<code>createSharedInvoker</code>は、SharedWorkerを生成します。</p>
 <p><strong>PARAMETERS</strong></p>
 <ol>
 <li>urlDerivedWorker - WebWorkerプロセスのURL。</li>
@@ -85,19 +201,30 @@ TransWorkerオブジェクトを生成しておきます。</p>
 <p><strong>RETURNS</strong></p>
 <p>第二引数に指定されたクラスのメソッドをすべて持った、
 TransWorkerインスタンスを返します。</p>
-<h2>ワーカースレッド側インスタンス生成</h2><p><strong>TransWorker.createWorker(client)</strong></p>
-<p>ワーカースレッドで動作するTransWorkerオブジェクトを生成します。
-このオブジェクトがメインスレッドからの通知により第一引数で指定される
-インスタンスのメソッドを呼び出します。</p>
+<h2>ワーカースレッドからの通知を受け取る</h2><p><strong>transworker.subscribe(notificationName, handler)</strong></p>
+<p>ワーカースレッドからの通知を購読します。</p>
+<p><strong>PARAMETERS</strong></p>
+<ol>
+<li>notificationName - 通知の名称。</li>
+<li>handler - 通知を処理するハンドラー。</li>
+</ol>
+<p><strong>DETAILS</strong></p>
+<p>既に購読している通知に新たなハンドラーは設定できません。</p>
+<h2>ワーカースレッド側インスタンス生成</h2><p><strong>TransWorker.createWorker(client)</strong><br><strong>TransWorker.createSharedWorker(client)</strong></p>
+<p>ワーカースレッドで動作するTransWorkerオブジェクトを生成します。</p>
+<p>これは、メインスレッド側でのインスタンス生成時に、
+引数 <code>urlDerivedWorker</code> で指定するスクリプト中で使用する必要があります。</p>
+<p><code>createWorker</code>はDedicatedWorker、
+<code>createSharedWorker</code>はSharedWorker
+として実行されるためのインスタンスを生成します。</p>
 <p><strong>PARAMETERS</strong></p>
 <ul>
-<li>client - ワーカースレッドで動作するクラスの、
-インスタンスかデフォルトコンストラクタを指定します。</li>
+<li>client - ワーカースレッドで動作するクラスのインスタンス。</li>
 </ul>
 <p><strong>DETAILS</strong></p>
-<p>第一引数の対象となるインスタンスに、TransWorkerのインスタンスを保持させる
+<p>第一引数のインスタンスに、TransWorkerのインスタンスを保持させる
 <code>_transworker</code>というフィールドを追加します。
-これにより、postNotifyメソッドを呼び出せます。</p>
+これを利用してTransWorkerのメソッドを呼び出せます。</p>
 <p><strong>RETURNS</strong></p>
 <p>ワーカースレッド側のTransWorkerインスタンスを返します。</p>
 <h2>ワーカーからメインスレッドへの通知</h2><p><strong>transworker.postNotify(name, parameter)</strong></p>
@@ -108,98 +235,7 @@ TransWorkerインスタンスを返します。</p>
 <li>parameter - 通知に関連するパラメータ。</li>
 </ul>
 <p>それぞれの内容は対象のクラスで独自に定義します。</p>
-<h2>使用例 / EXAMPLE</h2><p>ここでは、順番に素数を見つける簡単なクラスを使用して、TransWorkerの使用方法を説明します。</p>
-<p>Here is an explanation of TransWorker class using a simple class to find prime number.</p>
-<h3>1. クライアントクラスの用意 / Prepare a 'client-class'</h3><p>ここでは以下のような、クライアントクラスを準備します。</p>
-<p>Here is a 'client-class' that will work in sub-thread:</p>
-<p><strong>prime.js</strong></p>
-<pre class="prettyprint source lang-javascript"><code>function Prime() {
-    this.primes = [];
-    this.num = 1;
-}
-Prime.prototype.isPrime = function(n) {
-    for(var i = 0; i &lt; this.primes.length; i++) {
-        if((n % this.primes[i]) == 0) {
-            console.log(&quot;A&quot;, n,
-                    &quot;is not a prime&quot;,
-                    &quot;cause it was divided by a prime&quot;,
-                    this.primes[i]);
-            return false;
-        }
-    }
-    console.log(&quot;Found a &quot;, this.num, &quot;as prime.&quot;);
-    return true;
-}
-Prime.prototype.getNextPrime = function() {
-    while(true) {
-        this.num++;
-        if(this.isPrime(this.num)) {
-            this.primes.push(this.num);
-            return this.num;
-        }
-    }
-    return null;
-};</code></pre><h3>2. Web Worker スクリプト / Create Web Worker script</h3><p>Web Workerとして読み込まれるスクリプトを作成します。
-最低限、以下の実装になります。</p>
-<p>Create a script loaded as Web Worker. At least, it will be following codes.</p>
-<p><strong>prime_worker.js</strong></p>
-<pre class="prettyprint source lang-javascript"><code>importScripts('path/to/the/transworker.js');
-importScripts('prime.js');
-TransWorker.createWorker(Prime);</code></pre><h3>3. メインスレッド側のコード / Main thread codes</h3><p>以下のHTMLファイルでは、Primeクラスを、メインスレッドとサブスレッド両方で動作させています。</p>
-<p>両者のコード上の違いは、見つかった素数の受け取り方です。
-シングルスレッドバージョンの戻り値は、サブスレッドバージョンでは非同期のコールバックで返されます。</p>
-<p>ある素数よりも次に大きい素数を得るのは、そんなに重たい処理ではありませんし、
-このページには処理をブロックする要素もないため、両者の速度に違いはほとんどありません。</p>
-<p>Following HTML, It runs the Prime class in both main-thread
-and sub-thread.</p>
-<p>One difference is that the returning value in single-thread-
-model is to be passed by async callback function specified
-when it called.</p>
-<p><strong>prime.html</strong></p>
-<pre class="prettyprint source lang-html"><code>&lt;!doctype HTML>
-&lt;html>
-&lt;head>
-&lt;title>Prime&lt;/title>
-&lt;style type=&quot;text/css&quot;>
-span { display:inline-block; padding:10px; margin:2px; }
-.label {
-    width:120px; text-align:center;
-    background-color:silver; border: solid gray 1px; }
-&lt;/style>
-&lt;/head>
-&lt;body>
-&lt;h1>Prime&lt;/h1>
-&lt;div>
-    &lt;span class=&quot;label&quot;>Single Thread&lt;/span>
-    &lt;span id=&quot;lastResultSt&quot; class=&quot;lastResult&quot;>&lt;/span>
-&lt;/div>
-&lt;div>
-    &lt;span class=&quot;label&quot;>Woker Thread&lt;/span>
-    &lt;span id=&quot;lastResultMt&quot; class=&quot;lastResult&quot;>&lt;/span>
-&lt;/div>
-&lt;script src=&quot;prime.js&quot;>&lt;/script>
-&lt;script src=&quot;path/to/the/transworker.js&quot;>&lt;/script>
-&lt;script type=&quot;text/javascript&quot;>
-(function() {
-    var lastResultSt = document.getElementById('lastResultSt');
-    var prime = new Prime();
-    window.setInterval(function() {
-        (function(num) {
-            lastResultSt.innerHTML = JSON.stringify(num);
-        }(prime.getNextPrime()));
-    }, 1);
-
-    var lastResultMt = document.getElementById('lastResultMt');
-    var prime_worker = TransWorker.createInvoker(&quot;./prime_worker.js&quot;, Prime, this);
-    window.setInterval(function() {
-        prime_worker.getNextPrime(function(num) {
-            lastResultMt.innerHTML = JSON.stringify(num);
-        });
-    }, 1);
-}());
-&lt;/script>
-&lt;/body>
-&lt;/html></code></pre><h2>LICENSE</h2><p>MIT</p></article>
+<h2>LICENSE</h2><p>MIT</p></article>
     </section>
 
 
@@ -216,7 +252,7 @@ span { display:inline-block; padding:10px; margin:2px; }
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Wed Dec 05 2018 07:01:20 GMT+0900 (東京 (標準時))
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Sat Dec 22 2018 15:16:05 GMT+0900 (東京 (標準時))
 </footer>
 
 <script> prettyPrint(); </script>
