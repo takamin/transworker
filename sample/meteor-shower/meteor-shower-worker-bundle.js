@@ -22315,7 +22315,6 @@ TransWorker.prototype.createInvoker = function (workerUrl, clientCtor, thisObjec
   this.callbacks = {};
   this._uuid = uuidv4();
   this.queryId = 0;
-  console.log("uuid:".concat(this._uuid));
   this.onNotify = {};
   this._callbacker = thisObject;
 
@@ -22324,7 +22323,6 @@ TransWorker.prototype.createInvoker = function (workerUrl, clientCtor, thisObjec
       case 'response':
         try {
           if (e.data.uuid !== _this._uuid) {
-            console.log("unknwon uuid:".concat(e.data.uuid));
             break;
           }
 
@@ -22573,8 +22571,6 @@ TransWorker.prototype.createWorker = function (client) {
   var onReceiveMessage = function onReceiveMessage(e) {
     try {
       //return the value to UI-thread
-      console.log("Worker receives a uuid:".concat(e.data.uuid));
-
       _this4.port.postMessage({
         type: 'response',
         uuid: e.data.uuid,
