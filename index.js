@@ -104,7 +104,6 @@ TransWorker.prototype.createInvoker = function(
     this.callbacks = {};
     this._uuid = uuidv4();
     this.queryId = 0;
-    console.log(`uuid:${this._uuid}`);
     this.onNotify = {};
     this._callbacker = thisObject;
 
@@ -113,7 +112,6 @@ TransWorker.prototype.createInvoker = function(
         case 'response':
             try {
                 if(e.data.uuid !== this._uuid) {
-                    console.log(`unknwon uuid:${e.data.uuid}`);
                     break;
                 }
                 this.callbacks[e.data.queryId].apply(
@@ -287,7 +285,6 @@ TransWorker.prototype.createWorker = function(client) {
     const onReceiveMessage = (e => {
         try {
             //return the value to UI-thread
-            console.log(`Worker receives a uuid:${e.data.uuid}`);
             this.port.postMessage({
                 type:'response',
                 uuid: e.data.uuid,
