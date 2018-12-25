@@ -1,6 +1,4 @@
 "use strict";
-const TransWorker = require("../../index.js");
-const MeteorShower = require("./meteor-shower.js");
 
 /**
  * Create a meteor shower sample application.
@@ -34,7 +32,7 @@ function App(container, width, height, backcolor1, backcolor2) {
 
     const multiApp = new TransWorker();
     multiApp.create(
-        "meteor-shower-worker-bundle.js",
+        "meteor-shower-worker.js",
         MeteorShower, this, {
         "fillRects": fillRects => {
             for(const rect of fillRects) {

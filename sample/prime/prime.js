@@ -36,5 +36,3 @@ Prime.prototype.isPrime = function(n) {
     }
     return true;
 };
-
-module.exports = Prime;

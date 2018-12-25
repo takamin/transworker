@@ -1,5 +1,4 @@
 "use strict";
-const Meteor = require("./meteor.js");
 
 /**
  * MeteorShower.
@@ -140,5 +139,3 @@ MeteorShower.prototype.run = function() {
         }
     }
 };
-
-module.exports = MeteorShower;
