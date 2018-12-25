@@ -22,5 +22,3 @@ Meteor.prototype.move = function() {
 Meteor.prototype.getPos = function() {
     return {x: this.px, y: this.py, color: this.color };
 };
-
-module.exports = Meteor;

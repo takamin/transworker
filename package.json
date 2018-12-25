@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "parcel build --out-dir . --out-file transworker.js index.js",
-    "sample": "node bin/build-sample.js && http-server . -p 5000 -o http://127.0.0.1:5000/sample/index.html",
+    "sample": "http-server . -p 5000 -o http://127.0.0.1:5000/sample/index.html",
     "test": "node bin/build-test.js && parcel test/test.html --open"
   },
   "repository": {
