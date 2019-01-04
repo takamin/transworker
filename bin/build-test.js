@@ -7,6 +7,8 @@ const Path = require('path');
         const bundles = {
             "test-class-worker-bundle.js":
                 Path.join("test", "test-class-worker.js"),
+            "test-class-shared-worker-bundle.js":
+                Path.join("test", "test-class-shared-worker.js"),
         };
         await Bundler.build(bundles);
     } catch(err) {
