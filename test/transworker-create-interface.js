@@ -56,7 +56,7 @@ describe("TransWorker", () => {
                 }
             );
             assert.isTrue(tw._shared);
-            assert.equal(tw._syncType, Promise);
+            assert.equal(tw._syncType, TransWorker.SyncTypePromise);
         });
         describe("syncType = Promise", () => {
             it("should create a wrapper that returns promise", () => {
@@ -64,7 +64,9 @@ describe("TransWorker", () => {
                     const tw = TransWorker.createInterface(
                         "test-class-worker-bundle.js", TestClass,
                         { syncType: TransWorker.SyncTypePromise });
-                    assert.equal(tw.testMethod().constructor, Promise);
+                    assert.equal(
+                        tw.testMethod().constructor,
+                        TransWorker.SyncTypePromise);
                 });
             });
             it("should callback a return value", async () => {

@@ -123,8 +123,12 @@ const Prime = require("./prime.js");
 
 const result = document.getElementById('result');
 
-const primeWorker = TransWorker.createSharedInvoker(
-    "./prime-worker-bundle.js", Prime);
+const primeWorker = TransWorker.createSharedWorker(
+    "./prime-worker-bundle.js", Prime, {
+        shared: true, syncType:
+        TransWorker.SyncTypePromise,
+    }
+);
 
 primeWorker.subscribe("primeNumber", primeNumber => {
     const spanPrime = document.createElement('SPAN');
@@ -230,35 +234,45 @@ __TransWorkerオブジェクト内に生成__ します。
 メインスレッド側インスタンス生成
 --------------------------------
 
-__TransWorker.createInvoker(urlDerivedWorker, clientCtor, thisObject, notifyHandlers)__  
-__TransWorker.createSharedInvoker(urlDerivedWorker, clientCtor, thisObject, notifyHandlers)__
+__TransWorker.createInterface(urlDerivedWorker, clientCtor, options)__  
+__TransWorker.createInvoker(urlDerivedWorker, clientCtor, thisObject, notifyHandlers)__ - deprecated  
+__TransWorker.createSharedInvoker(urlDerivedWorker, clientCtor, thisObject, notifyHandlers)__ - deprecated
 
 メインスレッド側で利用できるTransWorkerオブジェクトを生成します。
 `createInvoker`はDedicatedWorkerを、`createSharedInvoker`は、SharedWorkerを生成します。
+`createInterface`では、options引数によって、その種類を指定します。
 
 __PARAMETERS__
 
-1. urlDerivedWorker - WebWorkerプロセスのURL。
-2. clientCtor - クライアントクラスのコンストラクタ。
-3. thisObject - 通知を呼び出す場合のthisを指定する。
-4. notifyHandlers - WebWorker側からの通知を受け取るハンドラーのリスト。
+1. urlDerivedWorker:string - WebWorkerプロセスのURL。
+2. clientCtor:Function - クライアントクラスのコンストラクタ。
+3. options:TransWorker.Options - オプション。指定可能なキーを以下に示します。
+    1. shared:boolean - 生成するWorkerの種類を指定します。
+        1. false - (default) DedicatedWorker
+        2. true - SharedWorker
+    2. syncType:Function - 生成するラッパー関数の戻り値の受け取り方を指定します。
+        1. TransWorker.SynTypeCallback - (default)コールバック関数の引数で戻り値を得る。
+        2. TransWorker.SyncTypePromise - ラッパー関数から返されるPromiseオブジェクトの解決値として戻り値を得る。
+4. thisObject:Any - (deprecated)通知を呼び出す場合のthisを指定する。
+5. notifyHandlers:Object - (deprecated)WebWorker側からの通知を受け取るハンドラーのマップ（キー：通知名、値：ハンドラー関数）。
 
 __DETAILS__
 
-返されるオブジェクトには、
-第二引数で渡されたクラスのすべてのメソッドと同名のメソッドが実装されています。
+TransWorkerのインスタンスを生成します。
+インスタンスの生成と同時に第1引数で指定したスクリプトをワーカースレッドで実行します。
+このスクリプトでは第2引数で指定したクラスのインスタンスを保持するワーカースレッド側のTransWorkerインスタンスが生成されている前提です。
 
-これらのメソッド呼び出しは、第一引数で示されたWebWorker内で動作している、
-クライアントクラスのインスタンスメソッド呼び出しに変換されます。
+メインスレッド側のTransWorkerインスタンスには、第二引数で指定したクラスの全インスタンスメソッドへのラッパー関数が実装されます。
+各ラッパー関数はワーカースレッド側のTransWorkerインスタンスに対して、メソッド呼び出しのメッセージを発行しその戻り値を非同期で返します。
 
-この呼び出しは非同期呼び出しです。
+戻り値の受け取り方は、コールバック関数によるものとPromiseによるものの２つから選択できます。
 
-メソッドの戻り値は、本来の引数リストの後に指定するコールバック関数で受け取ります。
+`createInterface`では、第3引数のoptions.syncTypeで選択します。
+他の2つのメソッドはコールバック関数による受け取り方しか選択できません。
 
 __RETURNS__
 
-第二引数に指定されたクラスのメソッドをすべて持った、
-TransWorkerインスタンスを返します。
+TransWorkerのインスタンスを返します。
 
 
 ワーカースレッドからの通知を受け取る

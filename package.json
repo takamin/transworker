@@ -1,6 +1,6 @@
 {
   "name": "transworker",
-  "version": "1.1.2",
+  "version": "1.2.0",
   "description": "A Module to make WebWorker easier to use.",
   "main": "index.js",
   "scripts": {
@@ -21,10 +21,10 @@
   "bugs": {
     "url": "https://github.com/takamin/transworker/issues"
   },
-  "homepage": "http://takamints.hatenablog.jp/entry/2016/01/31/mutithreading-javascript-on-a-browser-using-a-web-workers-api",
+  "homepage": "https://takamints.hatenablog.jp/entry/transworker-v1.1.0-released",
   "devDependencies": {
     "chai": "^4.2.0",
-    "eslint": "^4.19.1",
+    "eslint": "^5.12.0",
     "jsdoc": "^3.5.5",
     "mocha": "^5.2.0",
     "parcel-bundler": "^1.11.0",

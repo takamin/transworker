@@ -257,8 +257,6 @@ TransWorker.prototype.createCallbackWrapper = function(methodName)
 {
     return (...param) => {
         const queryId = this.queryId++;
-        console.log("*** " + param.length);
-        console.log("*** " + typeof(param.slice(-1)[0]));
         if(param.length > 0 && typeof(param.slice(-1)[0]) === "function") {
             this.callbacks[queryId] = param.splice(-1, 1)[0];
         } else {
@@ -366,7 +364,6 @@ TransWorker.prototype.createWorker = function(client) {
     // method and post back its value.
     const onReceiveMessage = (e => {
         try {
-            console.log(`onReceiveMessage: ${JSON.stringify(e.data)}`);
             //return the value to UI-thread
             this.messagePort.postMessage({
                 type:'response',
@@ -387,7 +384,6 @@ TransWorker.prototype.createWorker = function(client) {
 
     if(this._shared) {
         this.worker.onconnect = e => {
-            console.log(`onconnect`);
             this.messagePort = e.ports[0];
             this.messagePort.addEventListener("message", onReceiveMessage);
             this.messagePort.start();

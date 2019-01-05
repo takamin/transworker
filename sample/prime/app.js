@@ -1,6 +1,6 @@
 const result = document.getElementById('result');
-const primeWorker = TransWorker.createSharedInvoker(
-    "./prime-worker.js", Prime);
+const primeWorker = TransWorker.createInterface(
+    "./prime-worker.js", Prime, { shared: true });
 primeWorker.subscribe("primeNumber", primeNumber => {
     const spanPrime = document.createElement('SPAN');
     spanPrime.innerHTML = primeNumber;
