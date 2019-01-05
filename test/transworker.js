@@ -3,8 +3,8 @@ const assert = require("chai").assert;
 const TransWorker = require("../index.js");
 const TestClass = require("./test-class.js");
 describe("TransWorker", () => {
-    describe("Instance in the main thread", () => {
-        describe("createInvoker", () => {
+    describe("createInvoker", () => {
+        describe("Method type", () => {
             it("should override target class prototype", () => {
                 const tw = TransWorker.createInvoker(
                     "test-class-worker-bundle.js", TestClass);
@@ -21,7 +21,7 @@ describe("TransWorker", () => {
                 assert.isNotNull(tw.worker);
             });
         });
-        describe("The wrapper methods created by createInvoker", () => {
+        describe("The wrappers are invokable", () => {
             it("should be invoked when the callback is specified", () => {
                 assert.doesNotThrow(() => {
                     const tw = TransWorker.createInvoker(
