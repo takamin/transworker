@@ -363,22 +363,36 @@ TransWorker.prototype.createWorker = function(client) {
     // On receive a message, invoke the client
     // method and post back its value.
     const onReceiveMessage = (e => {
-        try {
-            //return the value to UI-thread
+
+        const returnResult = value => {
             this.messagePort.postMessage({
                 type:'response',
                 uuid: e.data.uuid,
                 queryId: e.data.queryId,
                 method: e.data.method,
-                param: [
-                    this.client[e.data.method].apply(
-                        this.client, e.data.param)
-                ]
+                param: [ value ],
             });
-        } catch(ex) {
+        };
+
+        const onError = ex => {
             console.warn("*** exception: ", ex,
                 "in method", e.data.method, "params:",
                 JSON.stringify(e.data.param));
+        };
+
+        try {
+            const result = client[e.data.method].apply(client, e.data.param);
+            if(result && result.constructor === Promise) {
+                result.then( fulfillment => {
+                    returnResult(fulfillment);
+                }).catch(ex => {
+                    onError(ex);
+                });
+            } else {
+                returnResult(result);
+            }
+        } catch(ex) {
+            onError(ex);
         }
     });
 
