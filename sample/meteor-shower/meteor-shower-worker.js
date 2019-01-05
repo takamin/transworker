@@ -1,6 +1,8 @@
 "use strict";
-const TransWorker = require("../../index.js");
-const MeteorShower = require("./meteor-shower.js");
+importScripts(
+    "../../transworker.js",
+    "./meteor.js",
+    "./meteor-shower.js");
 
 /**
  * Worker side MeteorShower.

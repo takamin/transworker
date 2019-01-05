@@ -1,4 +1,5 @@
 "use strict";
+const assert = require("assert");
 const uuidv4 = require("uuid/v4");
 
 /**
@@ -46,6 +47,60 @@ if(!globalContextName) {
 TransWorker.context = globalContextName;
 
 /**
+ * A literal for the interface methods to synchronize with a callback.
+ * @type {Function}
+ */
+TransWorker.SyncTypeCallback = Function;
+
+/**
+ * A literal for the interface methods to synchronize with a Promise.
+ * @type {Function}
+ */
+TransWorker.SyncTypePromise = Promise;
+
+/**
+ * Options fot a TransWorker object.
+ * @constructor
+ * @param {object} options an option object
+ */
+TransWorker.Options = function(options) {
+    options = options || {
+        shared: false,
+        syncType: TransWorker.SyncTypeCallback,
+    };
+    options.shared = (options.shared != null ? options.shared : false);
+    options.syncType = (options.syncType != null ? options.syncType :
+        TransWorker.SyncTypeCallback);
+    assert.ok(typeof(options.shared) === "boolean" && (
+        options.syncType === TransWorker.SyncTypeCallback ||
+        options.syncType === TransWorker.SyncTypePromise));
+    this.shared = options.shared;
+    this.syncType = options.syncType;
+};
+
+/**
+ * Create a worker and an interface instance for the thread.
+ *
+ * @param {string} workerUrl A worker url. It must use TransWorker.
+ * @param {Function} clientCtor client-class constructor.
+ * @param {TransWorker.Options} options Options to create a wrapper object for
+ *      the main thread.
+ * @returns {Transworker} The created TransWorker instance.
+ */
+TransWorker.createInterface = function(workerUrl, clientCtor, options) {
+    options = options || new TransWorker.Options();
+    if(workerUrl.constructor !== TransWorker.Options) {
+        options = new TransWorker.Options(options);
+    }
+
+    const transworker = new TransWorker();
+    transworker._shared = options.shared;
+    transworker._syncType = options.syncType;
+    transworker.createInvoker(workerUrl, clientCtor);
+    return transworker;
+};
+
+/**
  * Create instance for main thread.
  *
  * @param {string} workerUrl A worker url. It must use TransWorker.
@@ -60,6 +115,7 @@ TransWorker.createInvoker = function(
 {
     const transworker = new TransWorker();
     transworker._shared = false;
+    transworker._syncType = TransWorker.SyncTypeCallback;
     transworker.createInvoker(
         workerUrl, clientCtor,
         thisObject, notifyHandlers);
@@ -81,6 +137,7 @@ TransWorker.createSharedInvoker = function(
 {
     const transworker = new TransWorker();
     transworker._shared = true;
+    transworker._syncType = TransWorker.SyncTypeCallback;
     transworker.createInvoker(
         workerUrl, clientCtor,
         thisObject, notifyHandlers);
@@ -137,15 +194,28 @@ TransWorker.prototype.createInvoker = function(
     if(!this._shared) {
         // Load dedicated worker
         this.worker = new Worker(workerUrl);
-        this.worker.onmessage = onReceiveMessage;
+        this.messagePort = this.worker;
+        this.messagePort.onmessage = onReceiveMessage;
     } else {
         this.worker = new SharedWorker(workerUrl);
-        this.worker.port.onmessage = onReceiveMessage;
-        this.worker.port.start();
+        this.messagePort = this.worker.port;
+        this.messagePort.onmessage = onReceiveMessage;
+        this.messagePort.start();
     }
 
     // Create prototype entries same to the client
-    this.createWrappers(Object.keys(clientCtor.prototype));
+    const methodNames = Object.keys(clientCtor.prototype)
+    if(this._syncType === TransWorker.SyncTypePromise) {
+        for(const methodName of methodNames) {
+            TransWorker.prototype[methodName] =
+                this.createPromiseWrapper(methodName);
+        }
+    } else {
+        for(const methodName of methodNames) {
+            TransWorker.prototype[methodName] =
+                this.createCallbackWrapper(methodName);
+        }
+    }
 
     // Entry the handlers to receive notifies
     notifyHandlers = notifyHandlers || {};
@@ -179,27 +249,12 @@ TransWorker.prototype.subscribe = function(name, handler) {
 };
 
 /**
- * Create wrapper methods to send message to the worker
- * @param {Array<string>} methodNames An array of method names to override.
- * @returns {undefined}
- */
-TransWorker.prototype.createWrappers = function(
-        methodNames)
-{
-    for(const methodName of methodNames) {
-        TransWorker.prototype[methodName] = this.wrapper(methodName);
-    }
-};
-
-/**
  * Create client method wrapper
  * @param {string} methodName A method name to override.
  * @returns {Function} A wrapper function.
  */
-TransWorker.prototype.wrapper = function(
-        methodName)
+TransWorker.prototype.createCallbackWrapper = function(methodName)
 {
-    const port = (this._shared ? this.worker.port : this.worker);
     return (...param) => {
         const queryId = this.queryId++;
         if(param.length > 0 && typeof(param.slice(-1)[0]) === "function") {
@@ -207,7 +262,7 @@ TransWorker.prototype.wrapper = function(
         } else {
             this.callbacks[queryId] = (()=>{});
         }
-        port.postMessage({
+        this.messagePort.postMessage({
             method: methodName,
             param: param,
             uuid: this._uuid,
@@ -216,6 +271,31 @@ TransWorker.prototype.wrapper = function(
     };
 };
 
+/**
+ * Create client method wrapper that returns a promise that will be resolved
+ * by a value that remote method returns.
+ * @param {string} methodName A method name to override.
+ * @returns {Function} A wrapper function.
+ */
+TransWorker.prototype.createPromiseWrapper = function(methodName)
+{
+    return (...param) => {
+        return new Promise((resolve, reject) => {
+            try {
+                const queryId = this.queryId++;
+                this.callbacks[queryId] = (result => resolve(result));
+                this.messagePort.postMessage({
+                    method: methodName,
+                    param: param,
+                    uuid: this._uuid,
+                    queryId: queryId
+                });
+            } catch(err) {
+                reject(err);
+            }
+        });
+    };
+};
 /**
  * Create a Worker side TransWorker instance.
  *
@@ -257,7 +337,7 @@ TransWorker.createSharedWorker = function(client) {
 TransWorker.prototype.createWorker = function(client) {
     this.worker = globalContext;
     this.client = client;
-    this.port = null;
+    this.messagePort = null;
 
     // Make the client to be able to use this module
     this.client._transworker = this;
@@ -285,7 +365,7 @@ TransWorker.prototype.createWorker = function(client) {
     const onReceiveMessage = (e => {
         try {
             //return the value to UI-thread
-            this.port.postMessage({
+            this.messagePort.postMessage({
                 type:'response',
                 uuid: e.data.uuid,
                 queryId: e.data.queryId,
@@ -304,13 +384,13 @@ TransWorker.prototype.createWorker = function(client) {
 
     if(this._shared) {
         this.worker.onconnect = e => {
-            this.port = e.ports[0];
-            this.port.addEventListener("message", onReceiveMessage);
-            this.port.start();
+            this.messagePort = e.ports[0];
+            this.messagePort.addEventListener("message", onReceiveMessage);
+            this.messagePort.start();
         }
     } else {
-        this.port = this.worker;
-        this.port.onmessage = onReceiveMessage;
+        this.messagePort = this.worker;
+        this.messagePort.onmessage = onReceiveMessage;
     }
 };
 
@@ -323,7 +403,7 @@ TransWorker.prototype.createWorker = function(client) {
 TransWorker.prototype.postNotify = function(
         name, param)
 {
-    this.port.postMessage({
+    this.messagePort.postMessage({
         type:'notify',
         name: name,
         param: param
