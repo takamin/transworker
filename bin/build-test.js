@@ -5,6 +5,8 @@ const Path = require('path');
 (async function() {
     try {
         const bundles = {
+            "transworker.js":
+                Path.join(".", "index.js"),
             "test-class-worker-bundle.js":
                 Path.join("test", "test-class-worker.js"),
             "test-class-shared-worker-bundle.js":

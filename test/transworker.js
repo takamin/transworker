@@ -292,4 +292,23 @@ describe("TransWorker", () => {
             });
         });
     });
+    describe("A wrapper for the async method", () => {
+        it("should returns fulfillment value", async ()=>{
+            const tw = TransWorker.createInvoker(
+                "/test-class-worker-bundle.js", TestClass);
+            try {
+                assert.deepEqual(await Promise.all([
+                    new Promise((resolve, reject) => { try {
+                        tw.returnAfter(2000, "2000", result => resolve(result));
+                    } catch(err) { reject(err); }}),
+                    new Promise((resolve, reject) => { try {
+                        tw.returnAfter(1000, "1000", result => resolve(result));
+                    } catch(err) { reject(err); }}),
+                ]),
+                ["2000", "1000"]);
+            } catch(err) {
+                assert.fail(err.message);
+            }
+        }).timeout(5000);
+    });
 });
