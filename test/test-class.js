@@ -6,4 +6,12 @@ TestClass.prototype.testMethod = function() {
 TestClass.prototype.requestNotify = function(/*name, message*/) {
     /* no implementation on main thread side */
 };
+TestClass.prototype.returnAfter = function(timeout, value) {
+    return new Promise(resolve => {
+        setTimeout(() => {
+            resolve(value);
+        }, timeout);
+    });
+};
+
 module.exports = TestClass;
