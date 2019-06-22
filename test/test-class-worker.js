@@ -6,4 +6,4 @@ TestClass.prototype.requestNotify = function(name, message) {
     console.log(`requestNotify(${name},${message});`);
     this._transworker.postNotify(name, message);
 };
-TransWorker.create(TestClass);
+TransWorker.createWorker(TestClass);
