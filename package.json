@@ -1,6 +1,6 @@
 {
   "name": "transworker",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "A Module to make WebWorker easier to use.",
   "main": "index.js",
   "scripts": {
@@ -23,6 +23,7 @@
   },
   "homepage": "https://takamints.hatenablog.jp/entry/transworker-v1.1.0-released",
   "devDependencies": {
+    "acorn": "^6.1.1",
     "chai": "^4.2.0",
     "eslint": "^5.16.0",
     "jsdoc": "^3.6.2",

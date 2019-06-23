@@ -1,6 +1,6 @@
 "use strict";
 const TransWorker = require("./lib/transworker.js");
-const DedicatedTransWorker = require("./lib/dedicated-transworker.js");
+const DedicatedTransWorker = TransWorker;
 const SharedTransWorker = require("./lib/shared-transworker.js");
 TransWorker.Options = require("./lib/transworker-options.js");
 
