@@ -191,7 +191,7 @@ describe("TransWorker", () => {
             });
         });
         describe("subscribe", () => {
-            it("should entry the notification", async () => {
+            it("should register the notification", async () => {
                 try {
                     const notificationMessage = await new Promise( resolve => {
                         const tw = TransWorker.createInvoker(
@@ -204,7 +204,7 @@ describe("TransWorker", () => {
                     assert.fail(err.message);
                 }
             });
-            it("should entry the handler as the caller is the transworker", async () => {
+            it("should register a handler which the this-object at invoking is the transworker", async () => {
                 try {
                     const tw = TransWorker.createInvoker(
                         "/test-class-worker-bundle.js", TestClass, "caller");
@@ -219,74 +219,74 @@ describe("TransWorker", () => {
                     assert.fail(err.message);
                 }
             });
-            describe("should throw,", () => {
-                describe("when the same notification was entried", () => {
-                    it("by createInvoker", () => {
-                        const tw = TransWorker.createInvoker(
-                            "/test-class-worker-bundle.js", TestClass, null,
-                            { "hello": function() {} });
-                        assert.throw(() => {
-                            tw.subscribe("hello", ()=>{});
-                        });
-                    });
-                    it("by subscribe", () => {
-                        const tw = TransWorker.createInvoker(
-                            "/test-class-worker-bundle.js", TestClass);
-                        tw.subscribe("hello", () => {});
-                        assert.throw(() => {
-                            tw.subscribe("hello", ()=>{});
-                        });
+            describe("when a notification was registered by #createInvoker", () => {
+                it("should add another handler of the same notification", () => {
+                    const tw = TransWorker.createInvoker(
+                        "/test-class-worker-bundle.js", TestClass, null,
+                        { "hello": function() {} });
+                    assert.doesNotThrow(() => {
+                        tw.subscribe("hello", ()=>{});
                     });
                 });
-                describe("when the handler is", () => {
-                    it("null", () => {
-                        const tw = TransWorker.createInvoker(
-                            "/test-class-worker-bundle.js", TestClass);
-                        assert.throw(() => {
-                            tw.subscribe("hello", null);
-                        });
+            });
+            describe("when a notification was registered by #subscribe", () => {
+                it("should add another handler of the same notification", () => {
+                    const tw = TransWorker.createInvoker(
+                        "/test-class-worker-bundle.js", TestClass);
+                    tw.subscribe("hello", () => {});
+                    assert.doesNotThrow(() => {
+                        tw.subscribe("hello", ()=>{});
                     });
-                    it("undefined", () => {
-                        const tw = TransWorker.createInvoker(
-                            "/test-class-worker-bundle.js", TestClass);
-                        assert.throw(() => {
-                            tw.subscribe("hello", undefined);
-                        });
+                });
+            });
+            describe("when the handler is not function", () => {
+                it("should throw the handler is null", () => {
+                    const tw = TransWorker.createInvoker(
+                        "/test-class-worker-bundle.js", TestClass);
+                    assert.throw(() => {
+                        tw.subscribe("hello", null);
                     });
-                    it("an array", () => {
-                        const tw = TransWorker.createInvoker(
-                            "/test-class-worker-bundle.js", TestClass);
-                        assert.throw(() => {
-                            tw.subscribe("hello", []);
-                        });
+                });
+                it("should throw the handler is undefined", () => {
+                    const tw = TransWorker.createInvoker(
+                        "/test-class-worker-bundle.js", TestClass);
+                    assert.throw(() => {
+                        tw.subscribe("hello", undefined);
                     });
-                    it("an object", () => {
-                        const tw = TransWorker.createInvoker(
-                            "/test-class-worker-bundle.js", TestClass);
-                        assert.throw(() => {
-                            tw.subscribe("hello", {});
-                        });
+                });
+                it("should throw the handler is an array", () => {
+                    const tw = TransWorker.createInvoker(
+                        "/test-class-worker-bundle.js", TestClass);
+                    assert.throw(() => {
+                        tw.subscribe("hello", []);
                     });
-                    it("a string", () => {
-                        const tw = TransWorker.createInvoker(
-                            "/test-class-worker-bundle.js", TestClass);
-                        assert.throw(() => {
-                            tw.subscribe("hello", "transworker");
-                        });
+                });
+                it("should throw the handler is an object", () => {
+                    const tw = TransWorker.createInvoker(
+                        "/test-class-worker-bundle.js", TestClass);
+                    assert.throw(() => {
+                        tw.subscribe("hello", {});
                     });
-                    it("a number", () => {
-                        const tw = TransWorker.createInvoker(
-                            "/test-class-worker-bundle.js", TestClass);
-                        assert.throw(() => {
-                            tw.subscribe("hello", 123);
-                        });
+                });
+                it("should throw the handler is a string", () => {
+                    const tw = TransWorker.createInvoker(
+                        "/test-class-worker-bundle.js", TestClass);
+                    assert.throw(() => {
+                        tw.subscribe("hello", "transworker");
                     });
-                    it("a boolean", () => {
-                        const tw = TransWorker.createInvoker(
-                            "/test-class-worker-bundle.js", TestClass);
-                        assert.throw(() => {
-                            tw.subscribe("hello", true);
-                        });
+                });
+                it("should throw the handler is a number", () => {
+                    const tw = TransWorker.createInvoker(
+                        "/test-class-worker-bundle.js", TestClass);
+                    assert.throw(() => {
+                        tw.subscribe("hello", 123);
+                    });
+                });
+                it("should throw the handler is a boolean", () => {
+                    const tw = TransWorker.createInvoker(
+                        "/test-class-worker-bundle.js", TestClass);
+                    assert.throw(() => {
+                        tw.subscribe("hello", true);
                     });
                 });
             });
