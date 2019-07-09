@@ -1,4 +1,4 @@
 importScripts(
     "../../transworker.js",
     "./prime.js");
-TransWorker.createSharedWorker(Prime);
+TransWorker.createSharedWorker(new Prime());
