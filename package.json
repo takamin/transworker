@@ -1,6 +1,6 @@
 {
   "name": "transworker",
-  "version": "1.2.5",
+  "version": "1.2.8",
   "description": "A Module to make WebWorker easier to use.",
   "main": "index.js",
   "scripts": {
@@ -23,18 +23,18 @@
   },
   "homepage": "https://takamints.hatenablog.jp/entry/transworker-v1.1.0-released",
   "devDependencies": {
-    "acorn": "^6.1.1",
+    "acorn": "^7.1.0",
     "chai": "^4.2.0",
-    "eslint": "^5.16.0",
-    "jsdoc": "^3.6.2",
-    "mocha": "^5.2.0",
-    "parcel-bundler": "^1.12.3",
+    "eslint": "^6.7.2",
+    "jsdoc": "^3.6.3",
+    "mocha": "^6.2.2",
+    "parcel-bundler": "^1.12.4",
     "parcel-plugin-eslint": "^1.0.7",
     "parcel-plugin-jsdoc": "0.0.1"
   },
   "dependencies": {
     "babel-polyfill": "^6.26.0",
-    "uuid": "^3.3.2"
+    "uuid": "^3.3.3"
   },
   "eslintConfig": {
     "parserOptions": {
