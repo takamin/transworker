@@ -5,4 +5,7 @@ const TestClass = require("./test-class.js");
 TestClass.prototype.requestNotify = function(name, message) {
     this._transworker.postNotify(name, message);
 };
-TransWorker.createWorker(TestClass);
+const transworker = TransWorker.createWorker(TestClass);
+transworker.listenTransferableObject("transObj", transObj => {
+    transworker.client.setTransObj(transObj);
+});
