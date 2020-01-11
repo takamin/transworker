@@ -1,5 +1,7 @@
 "use strict"
-function TestClass() {}
+function TestClass() {
+    this._transObj = null;
+}
 TestClass.prototype.testMethod = function() {
     return "TestClass.testMethod";
 };
@@ -12,6 +14,15 @@ TestClass.prototype.returnAfter = function(timeout, value) {
             resolve(value);
         }, timeout);
     });
+};
+
+TestClass.prototype.setTransObj = function(transObj) {
+    console.log("setTransObj");
+    this._transObj = transObj;
+};
+TestClass.prototype.hasTransObj = function() {
+    console.log("hasTransObj");
+    return this._transObj != null;
 };
 
 module.exports = TestClass;
