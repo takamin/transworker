@@ -9,23 +9,39 @@ via <a href="http://photopin.com">photopin</a>
 概要
 ----
 
-TransWorkerは __WebWorkerを手軽に扱えるようにする__ モジュールです。
+TransWorkerは __WebWorkerによるJavaScriptのマルチスレッドを手軽に使えるようにするモジュール__ です。
 
-ワーカースレッドで動かしたい処理を、クラスのインスタンスメソッドとして定義して、
-メインスレッド側からワーカースレッド側のメソッドを呼び出せるようにしています。
+ユーザーが作成したクラスのインスタンスをワーカースレッド側で生成し、
+そのクラスのインスタンスメソッドをメインスレッド側からリモート呼び出しできるようにします。
 
-各メソッドの戻り値はメインスレッド側で呼び出し時に指定したコールバック関数に返されます。
+機能
+----
 
-ワーカースレッド側から通知メッセージを発行することも可能です。
 
-* [API](https://takamin.github.io/transworker/docs/TransWorker.html)
+### インスタンスメソッドをスレッド間リモート呼び出しに変換
+
+メインスレッドではユーザー定義クラスのプロトタイプを読み取り、
+スレッド間メッセージを送信する同名のラッパーメソッドを生成します。
+
+ワーカスレッド側では、このメッセージを受信すると、クラスインスタンスのメソッドを呼び出して、
+その戻り値をスレッド間メッセージでメインスレッドへ戻します。
+
+### その他の機能
+
+* ワーカースレッド側からメインスレッドへ通知メッセージを発行。
+* メインスレッドからワーカースレッドへのTransferableオブジェクトの移譲（⇒[Transferable - Web API | MDN](https://developer.mozilla.org/ja/docs/Web/API/Transferable)）。
+* WebWorkerは DedicatedWorker と SharedWorker に対応しています。
+
+### リンク
+
+* [JSDoc: Class: TransWorker](https://takamin.github.io/transworker/docs/TransWorker.html)
+* [/sample/](https://github.com/takamin/transworker/tree/master/sample)
 * [サンプルページ](https://takamin.github.io/transworker/sample/)
-
 
 利用方法
 --------
 
-### バンドラーを利用する場合(オススメ)
+### バンドラー利用の場合
 
 ```bash
 npm install --save transworker
@@ -35,306 +51,16 @@ npm install --save transworker
 const TransWorker = require("transworker");
 ```
 
-### HTMLから直接読み込む方法
+### HTMLで直接読み込む場合
 
 バンドラーを使用しない場合は、ビルド済みの transworker.js を読み込みます。
 TransWorker クラスが利用可能です。
 
-#### ローカルファイルを読み込む
-
-```bash
-$ git clone https://github.com/takamin/transworker.git
-$ cd transworker
-$ npm install
-$ npm run build # ./transworker.js が生成されます。
-```
-
 ```xml
-<html>
-・
-・
-・
 <script src="${parent/of/repo}/transworker/transworker.js"></script>
-・
-・
-・
-</html>
 ```
 
-#### GitHub.Ioのスクリプトを読み込む（非推奨）
-
-本モジュールの GitHub Pages のビルド済みファイルも利用可能ですが、
-更新の制御ができませんので継続的な利用にはお勧めしません。
-
-```xml
-<html>
-・
-・
-・
-<script src="https://takamin.github.io/transworker/transworker.js"></script>
-・
-・
-・
-</html>
-```
-
-SharedWorker を使ったサンプル
------------------------------
-
-ワーカースレッドで延々と素数を見つけてメインスレッドへ通知するサンプルです。
-
-__sample/prime/index.html__
-
-HTMLファイルです。表示した時から延々と素数を見つけて画面に表示します。
-あまり長時間開きっぱなしにするとページが長くなりすぎるのでよくないです。
-
-以下のSCRIPTで読み込んでいる `app-bundle.js` は、次の `app.js` をバンドルしたものです。
-
-```xml
-<!doctype HTML>
-<html>
-<head>
-<title>Find Prime Numbers</title>
-<style type="text/css">
-span { display:inline-block; padding:10px; margin:2px; }
-.label {
-    width:120px; text-align:center;
-    background-color:silver; border: solid gray 1px; }
-</style>
-</head>
-<body>
-<h1>Find Prime Numbers</h1>
-<div id="result"></div>
-<script src="app-bundle.js"></script>
-</body>
-</html>
-```
-
-__sample/prime/app.js__
-
-メインスレッド側のスクリプトです。
-TransWorkerを使ってPrimeクラスのSharedWorkerを作成し、
-素数の通知を購読し、処理を開始します。
-
-
-```javascript
-const TransWorker = require("../../index.js");
-const Prime = require("./prime.js");
-
-const result = document.getElementById('result');
-
-const primeWorker = TransWorker.createSharedWorker(
-    "./prime-worker-bundle.js", Prime, {
-        shared: true, syncType:
-        TransWorker.SyncTypePromise,
-    }
-);
-
-primeWorker.subscribe("primeNumber", primeNumber => {
-    const spanPrime = document.createElement('SPAN');
-    spanPrime.innerHTML = primeNumber;
-    result.appendChild(spanPrime);
-});
-
-primeWorker.start();
-```
-
-__sample/prime/prime.js__
-
-TransWorkerで利用する前提の素数を見つけるクラスです。
-ワーカーコンテキストで生成されて、TransWorkerを介して各メソッドが呼び出されます。
-
-素数をメインスレッドへ知らせるために利用している
-`_transworker` フィールドはTransWorkerから注入されたものです。
-
-※ メインスレッドではメソッドのインターフェースのみが利用されます。
-
-
-```javascript
-function Prime() {
-    this.primes = [];
-    this.tid = null;
-}
-
-Prime.prototype.start = function() {
-
-    //SharedWorkerとして実行される場合は既に実行されている
-    //可能性がある
-    if(this.tid != null) {
-        console.log("Already started");
-        return;
-    }
-
-    let prime = 1;
-    this.tid = setInterval(()=> {
-        prime = this.getNextPrimeOf(prime)
-        this.primes.push(prime);
-
-        //素数をメインスレッドへ通知
-        this._transworker.postNotify("primeNumber", prime);
-    }, 1);
-};
-
-Prime.prototype.getNextPrimeOf = function(n) {
-    for(;;) {
-        n++;
-        if(this.isPrime(n)) {
-            return n;
-        }
-    }
-};
-
-Prime.prototype.isPrime = function(n) {
-    for(const prime of this.primes) {
-        if((n % prime) == 0) {
-            return false;
-        }
-    }
-    return true;
-};
-
-module.exports = Prime;
-```
-
-__sample/prime/prime-worker.js__
-
-メインスレッド側のTransWorkerのインスタンスから読み込まれる
-ワーカーコンテキストのスクリプトです。
-
-ここではSharedWorkerとして動作するPrimeクラスのTransWorkerを生成しています。
-
-```javascript
-const TransWorker = require("transworker.js");
-const Prime = require("./prime.js");
-TransWorker.createSharedWorker(Prime);
-```
-
-
-TransWorkerオブジェクトの生成
------------------------------
-
-メインスレッド側で、TransWorkerのインスタンスを生成するには、
-__ワーカースレッドで動作するスクリプトのURL__ と、
-そこで動作させようとしている __クラスの定義（コンストラクタ）__ を与えます。
-
-ワーカースレッドのスクリプトでも、同じクラスのインスタンスを与えて、
-TransWorkerオブジェクトを生成しておきます。
-
-メソッド呼び出しをスレッド間のメッセージ送受信に変換
-----------------------------------------------------
-
-メインスレッド側のTransWorkerは、与えられたクラスに定義されているインスタンスメソッドのラッパー関数を
-__TransWorkerオブジェクト内に生成__ します。
-これらラッパー関数は、ワーカースレッドへメソッド呼び出しのためのメッセージを送信します。
-
-ワーカースレッドのTransWorkerオブジェクトは、メインスレッドからこのメッセージを受信すると、
-インスタンスメソッドを呼び出します。戻り値はメインスレッドへメッセージにより返されます。
-
-
-メインスレッド側インスタンス生成
---------------------------------
-
-__TransWorker.createInterface(urlDerivedWorker, clientCtor, options)__  
-__TransWorker.createInvoker(urlDerivedWorker, clientCtor, thisObject, notifyHandlers)__ - deprecated  
-__TransWorker.createSharedInvoker(urlDerivedWorker, clientCtor, thisObject, notifyHandlers)__ - deprecated
-
-メインスレッド側で利用できるTransWorkerオブジェクトを生成します。
-`createInvoker`はDedicatedWorkerを、`createSharedInvoker`は、SharedWorkerを生成します。
-`createInterface`では、options引数によって、その種類を指定します。
-
-__PARAMETERS__
-
-1. urlDerivedWorker:string - WebWorkerプロセスのURL。
-2. clientCtor:Function - クライアントクラスのコンストラクタ。
-3. options:TransWorker.Options - オプション。指定可能なキーを以下に示します。
-    1. shared:boolean - 生成するWorkerの種類を指定します。
-        1. false - (default) DedicatedWorker
-        2. true - SharedWorker
-    2. syncType:Function - 生成するラッパー関数の戻り値の受け取り方を指定します。
-        1. TransWorker.SynTypeCallback - (default)コールバック関数の引数で戻り値を得る。
-        2. TransWorker.SyncTypePromise - ラッパー関数から返されるPromiseオブジェクトの解決値として戻り値を得る。
-4. thisObject:Any - (deprecated)通知を呼び出す場合のthisを指定する。
-5. notifyHandlers:Object - (deprecated)WebWorker側からの通知を受け取るハンドラーのマップ（キー：通知名、値：ハンドラー関数）。
-
-__DETAILS__
-
-TransWorkerのインスタンスを生成します。
-インスタンスの生成と同時に第1引数で指定したスクリプトをワーカースレッドで実行します。
-このスクリプトでは第2引数で指定したクラスのインスタンスを保持するワーカースレッド側のTransWorkerインスタンスが生成されている前提です。
-
-メインスレッド側のTransWorkerインスタンスには、第二引数で指定したクラスの全インスタンスメソッドへのラッパー関数が実装されます。
-各ラッパー関数はワーカースレッド側のTransWorkerインスタンスに対して、メソッド呼び出しのメッセージを発行しその戻り値を非同期で返します。
-
-戻り値の受け取り方は、コールバック関数によるものとPromiseによるものの２つから選択できます。
-
-`createInterface`では、第3引数のoptions.syncTypeで選択します。
-他の2つのメソッドはコールバック関数による受け取り方しか選択できません。
-
-__RETURNS__
-
-TransWorkerのインスタンスを返します。
-
-
-ワーカースレッドからの通知を受け取る
-------------------------------------
-
-__transworker.subscribe(notificationName, handler)__
-
-ワーカースレッドからの通知を購読します。
-
-
-__PARAMETERS__
-
-1. notificationName - 通知の名称。
-2. handler - 通知を処理するハンドラー。
-
-__DETAILS__
-
-既に購読している通知に新たなハンドラーは設定できません。
-
-ワーカースレッド側インスタンス生成
-----------------------------------
-
-__TransWorker.createWorker(client)__  
-__TransWorker.createSharedWorker(client)__
-
-ワーカースレッドで動作するTransWorkerオブジェクトを生成します。
-
-これは、メインスレッド側でのインスタンス生成時に、
-引数 `urlDerivedWorker` で指定するスクリプト中で使用する必要があります。
-
-`createWorker`はDedicatedWorker、
-`createSharedWorker`はSharedWorker
-として実行されるためのインスタンスを生成します。
-
-
-__PARAMETERS__
-
-* client - ワーカースレッドで動作するクラスのインスタンス。
-
-__DETAILS__
-
-第一引数のインスタンスに、TransWorkerのインスタンスを保持させる
-`_transworker`というフィールドを追加します。
-これを利用してTransWorkerのメソッドを呼び出せます。
-
-__RETURNS__
-
-ワーカースレッド側のTransWorkerインスタンスを返します。
-
-ワーカーからメインスレッドへの通知
-----------------------------------
-
-__transworker.postNotify(name, parameter)__
-
-メインスレッド側のTransWorkerオブジェクトへ通知を送信します。
-
-__PARAMETERS__
-
-* name - 通知の名称。
-* parameter - 通知に関連するパラメータ。
-
-それぞれの内容は対象のクラスで独自に定義します。
+最新のビルド済みスクリプトを https://takamin.github.io/transworker/transworker.js で公開しています。
 
 LICENSE
 -------
