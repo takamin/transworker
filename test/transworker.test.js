@@ -46,7 +46,7 @@ describe("TransWorker", () => {
                 } catch (err) {
                     assert.fail(err.message);
                 }
-            });
+            }).timeout(5000);
             it("should transport all parameters to worker even if the callback is omitted (issue#14)", async () => {
                 try {
                     const result = await new Promise(resolve => {
@@ -306,6 +306,23 @@ describe("TransWorker", () => {
                     } catch(err) { reject(err); }}),
                 ]),
                 ["2000", "1000"]);
+            } catch(err) {
+                assert.fail(err.message);
+            }
+        }).timeout(5000);
+    });
+    describe("transferObject", () => {
+        it("should transfer an object", async () => {
+            const tw = TransWorker.createInterface(
+                "/test-class-worker-bundle.js", TestClass, {
+                    syncType: TransWorker.SyncTypePromise
+                });
+            try {
+                const transObj = new ArrayBuffer(8);
+                assert.equal(transObj.byteLength, 8);
+                tw.transferObject("transObj", transObj);
+                assert.isTrue(await tw.hasTransObj());
+                assert.equal(transObj.byteLength, 0);
             } catch(err) {
                 assert.fail(err.message);
             }
