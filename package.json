@@ -25,9 +25,9 @@
   "devDependencies": {
     "acorn": "^7.1.0",
     "chai": "^4.2.0",
-    "eslint": "^6.7.2",
+    "eslint": "^6.8.0",
     "jsdoc": "^3.6.3",
-    "mocha": "^6.2.2",
+    "mocha": "^7.0.0",
     "parcel-bundler": "^1.12.4",
     "parcel-plugin-eslint": "^1.0.7",
     "parcel-plugin-jsdoc": "0.0.1"
