@@ -1,3 +1,4 @@
+/* global importScripts, Prime, TransWorker */
 importScripts(
     "../../transworker.js",
     "./prime.js");

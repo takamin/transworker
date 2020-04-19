@@ -30,6 +30,10 @@ TransWorker.createInterface = function(workerUrl, clientCtor, options) {
 /**
  * Create a main thread instance for dedicated worker.
  *
+ * @deprecated Use the `TransWorker.createInterface` with setting
+ * `options.shared` false and setting `options.syncType`
+ * `TransWorker.SyncTypeCallback`.
+ *
  * @param {string} workerUrl A worker url. It must use TransWorker.
  * @param {Function} clientCtor client-class constructor.
  * @param {object} thisObject (Optional) A caller of callback and notification.
@@ -50,6 +54,10 @@ TransWorker.createInvoker = function(
 
 /**
  * Create a main thread instance for shared worker.
+ *
+ * @deprecated Use the `TransWorker.createInterface` with setting
+ * `options.shared` true and setting `options.syncType`
+ * `TransWorker.SyncTypeCallback`.
  *
  * @param {string} workerUrl A worker url. It must use TransWorker.
  * @param {Function} clientCtor client-class constructor.
@@ -72,11 +80,15 @@ TransWorker.createSharedInvoker = function(
 /**
  * Create a worker side instance of DedicatedTransWorker.
  *
- * @param {object} client An instance of the client class.
+ * @param {object|Function} client An instance of the client class.
+ * @param {TransWorker.Options} options Options to create a worker.
  * @returns {TransWorker} an instance of TransWorker.
  */
-TransWorker.createWorker = function(client) {
-    const transworker = new DedicatedTransWorker();
+TransWorker.createWorker = function(client, options) {
+    options = options || new TransWorker.Options();
+
+    const transworker = (options.shared) ?
+        new SharedTransWorker() : new DedicatedTransWorker();
     if(typeof(client) == 'function') {
         client = new client();
     }
@@ -87,7 +99,10 @@ TransWorker.createWorker = function(client) {
 /**
  * Create a worker side instance of SharedTransWorker.
  *
- * @param {object} client An instance of the client class.
+ * @deprecated Use the `TransWorker.createWorker` with setting
+ * `options.shared` true.
+ *
+ * @param {object|Function} client An instance of the client class.
  * @returns {TransWorker} an instance of TransWorker.
  */
 TransWorker.createSharedWorker = function(client) {

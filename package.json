@@ -8,8 +8,9 @@
     "build-test": "node bin/build-test.js",
     "docs": "http-server . -p 4040 -o jsdoc/index.html",
     "docs:generate": "jsdoc --configure jsdoc.json --verbose",
+    "lint": "eslint .",
     "sample": "http-server . -p 5000 -o sample/index.html",
-    "test": "npm run build && npm run build-test && parcel test/test.html --open"
+    "test": "npm run lint && npm run build && npm run build-test && parcel test/test.html --open"
   },
   "repository": {
     "type": "git",
@@ -29,6 +30,7 @@
     "acorn": "^7.1.1",
     "chai": "^4.2.0",
     "eslint": "^6.8.0",
+    "eslint-plugin-jsdoc": "^23.0.1",
     "http-server": "^0.12.1",
     "jsdoc": "^3.6.4",
     "mocha": "^7.1.1",
@@ -54,6 +56,9 @@
       "no-console": "off",
       "valid-jsdoc": "warn"
     },
-    "extends": "eslint:recommended"
+    "extends": "eslint:recommended",
+    "plugins": [
+        "jsdoc"
+    ]
   }
 }

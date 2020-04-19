@@ -1,3 +1,4 @@
+/* global Prime, TransWorker */
 const result = document.getElementById('result');
 const primeWorker = TransWorker.createInterface(
     "./prime-worker.js", Prime, { shared: true });
