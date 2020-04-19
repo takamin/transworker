@@ -56,7 +56,10 @@
       "no-console": "off",
       "valid-jsdoc": "warn"
     },
-    "extends": "eslint:recommended",
+    "extends": [
+        "eslint:recommended",
+        "plugin:jsdoc/recommended"
+    ],
     "plugins": [
         "jsdoc"
     ]
