@@ -1,3 +1,4 @@
+/* globals MeteorShower, TransWorker */
 "use strict";
 
 /**
