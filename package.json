@@ -9,7 +9,7 @@
     "docs": "http-server . -p 4040 -o jsdoc/index.html",
     "docs:generate": "jsdoc --configure jsdoc.json --verbose",
     "lint": "eslint .",
-    "sample": "http-server . -p 5000 -o sample/index.html",
+    "sample": "npm run build && http-server . -p 5000 -o sample/index.html",
     "test": "npm run build && npm run build-test && parcel test/test.html --open"
   },
   "repository": {
@@ -27,7 +27,8 @@
   },
   "homepage": "https://takamints.hatenablog.jp/entry/transworker-v1.1.0-released",
   "devDependencies": {
-    "acorn": "^7.3.1",
+    "babel-core": "^6.26.3",
+    "babel-preset-env": "^1.7.0",
     "chai": "^4.2.0",
     "eslint": "^7.4.0",
     "http-server": "^0.12.3",
@@ -39,7 +40,8 @@
   },
   "dependencies": {
     "babel-polyfill": "^6.26.0",
-    "uuid": "^8.2.0"
+    "uuid": "^8.2.0",
+    "ws": "^7.3.1"
   },
   "eslintConfig": {
     "parserOptions": {
