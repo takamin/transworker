@@ -2,7 +2,12 @@
 const TransWorker = require("./lib/transworker.js");
 const DedicatedTransWorker = TransWorker;
 const SharedTransWorker = require("./lib/shared-transworker.js");
+const WebSocketClient = require("./lib/websocket-client.js");
+const WebSocketServer = require("./lib/websocket-server.js");
 TransWorker.Options = require("./lib/transworker-options.js");
+TransWorker.WebSocketClient = WebSocketClient;
+TransWorker.WebSocketServer = WebSocketServer;
+
 
 /**
  * Create a worker and an interface instance for the thread.
