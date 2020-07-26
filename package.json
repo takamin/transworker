@@ -1,14 +1,15 @@
 {
   "name": "transworker",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "A Module to make WebWorker easier to use.",
   "main": "index.js",
   "scripts": {
-    "build": "parcel build --out-dir . --out-file transworker.js index.js",
-    "build-test": "node bin/build-test.js",
+    "build": "npm run lint && parcel build --out-dir . --out-file transworker.js index.js",
+    "build-test": "npm run lint && node bin/build-test.js",
     "docs": "http-server . -p 4040 -o jsdoc/index.html",
     "docs:generate": "jsdoc --configure jsdoc.json --verbose",
-    "sample": "http-server . -p 5000 -o sample/index.html",
+    "lint": "eslint .",
+    "sample": "npm run build && http-server . -p 5000 -o sample/index.html",
     "test": "npm run build && npm run build-test && parcel test/test.html --open"
   },
   "repository": {
@@ -26,19 +27,21 @@
   },
   "homepage": "https://takamints.hatenablog.jp/entry/transworker-v1.1.0-released",
   "devDependencies": {
-    "acorn": "^7.1.0",
+    "babel-core": "^6.26.3",
+    "babel-preset-env": "^1.7.0",
     "chai": "^4.2.0",
-    "eslint": "^6.8.0",
-    "http-server": "^0.12.1",
-    "jsdoc": "^3.6.3",
-    "mocha": "^7.0.0",
+    "eslint": "^7.4.0",
+    "http-server": "^0.12.3",
+    "jsdoc": "^3.6.4",
+    "mocha": "^8.0.1",
     "parcel-bundler": "^1.12.4",
     "parcel-plugin-eslint": "^1.0.7",
     "parcel-plugin-jsdoc": "0.0.1"
   },
   "dependencies": {
     "babel-polyfill": "^6.26.0",
-    "uuid": "^3.3.3"
+    "uuid": "^8.2.0",
+    "ws": "^7.3.1"
   },
   "eslintConfig": {
     "parserOptions": {

@@ -1,3 +1,4 @@
+/* globals importScripts, MeteorShower, TransWorker */
 "use strict";
 importScripts(
     "../../transworker.js",

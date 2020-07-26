@@ -2,3 +2,4 @@
 /.cache
 /transworker.js
 /node_modules
+/jsdoc
