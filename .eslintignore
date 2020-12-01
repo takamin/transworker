@@ -3,3 +3,5 @@
 /transworker.js
 /node_modules
 /jsdoc
+/docs
+/sample/**/*-bundle.js
