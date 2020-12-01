@@ -2,6 +2,7 @@
 const assert = require("chai").assert;
 const TransWorker = require("../index.js");
 const TestClass = require("./test-class.js");
+const TestEs6Class = require("./test-es6-class.js");
 describe("TransWorker", () => {
     describe("createInvoker", () => {
         describe("Method type", () => {
@@ -19,6 +20,23 @@ describe("TransWorker", () => {
                 const tw = TransWorker.createInvoker(
                     "test-class-worker-bundle.js", TestClass);
                 assert.isNotNull(tw.worker);
+            });
+            describe("Test a class declared by the ES6(ES2015) class syntax", ()=>{
+                it("should override target class prototype", () => {
+                    const tw = TransWorker.createInvoker(
+                        "test-class-worker-bundle.js", TestEs6Class);
+                    assert.isTrue("testMethod" in tw);
+                });
+                it("should declare a function of target class prototype", () => {
+                    const tw = TransWorker.createInvoker(
+                        "test-class-worker-bundle.js", TestEs6Class);
+                    assert.equal(typeof(tw.testMethod), "function");
+                });
+                it("should create a dedicated worker", () => {
+                    const tw = TransWorker.createInvoker(
+                        "test-class-worker-bundle.js", TestEs6Class);
+                    assert.isNotNull(tw.worker);
+                });
             });
         });
         describe("The wrappers are invokable", () => {
@@ -59,6 +77,46 @@ describe("TransWorker", () => {
                 } catch (err) {
                     assert.fail(err.message);
                 }
+            });
+            describe("Test a class declared by the ES6(ES2015) class syntax", ()=>{
+                it("should be invoked when the callback is specified", () => {
+                    assert.doesNotThrow(() => {
+                        const tw = TransWorker.createInvoker(
+                            "test-class-worker-bundle.js", TestEs6Class);
+                        tw.testMethod(() => {});
+                    });
+                });
+                it("should be invoked when the callback is not specified", () => {
+                    assert.doesNotThrow(() => {
+                        const tw = TransWorker.createInvoker(
+                            "test-class-worker-bundle.js", TestClass);
+                        tw.testMethod();
+                    });
+                });
+                it("should callback a return value", async () => {
+                    try {
+                        const tw = TransWorker.createInvoker(
+                            "/test-class-worker-bundle.js", TestEs6Class);
+                        const result = await new Promise(
+                            resolve => tw.testMethod(s => resolve(s)));
+                        assert.equal(result, "TestClass.testMethod");
+                    } catch (err) {
+                        assert.fail(err.message);
+                    }
+                }).timeout(5000);
+                it("should transport all parameters to worker even if the callback is omitted (issue#14)", async () => {
+                    try {
+                        const result = await new Promise(resolve => {
+                            const tw = TransWorker.createInvoker(
+                                "/test-class-worker-bundle.js", TestEs6Class, null,
+                                { "hello": message => resolve(message) });
+                            tw.requestNotify("hello", "transworker");
+                        });
+                        assert.equal(result, "transworker");
+                    } catch (err) {
+                        assert.fail(err.message);
+                    }
+                });
             });
         });
         describe("Callback's caller", () => {
