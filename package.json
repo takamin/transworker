@@ -1,6 +1,6 @@
 {
   "name": "transworker",
-  "version": "1.6.3",
+  "version": "1.6.4",
   "description": "A Module to make WebWorker easier to use.",
   "main": "index.js",
   "scripts": {
